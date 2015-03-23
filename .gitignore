@@ -1,0 +1,9 @@
+.settings
+.idea
+.classpath
+.project
+!**.gitkeep
+/Client/build
+/Client/classes
+/Server/bin
+/Server/build

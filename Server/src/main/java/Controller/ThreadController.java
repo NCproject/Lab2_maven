@@ -203,7 +203,7 @@ public class ThreadController extends Thread {
                 builder.append("</id>");
                 builder.append("<number>");
                 builder.append(group.getNumber());
-                builder.append("<number>");
+                builder.append("</number>");
                 builder.append("<facultyId>");
                 builder.append(group.getFakulty());
                 builder.append("</facultyId>");
@@ -212,7 +212,6 @@ public class ThreadController extends Thread {
             builder.append("</groups>");
             builder.append("</faculty>");
         }
-        builder.append("</groups>");
         builder.append("</faculties>");
         builder.append("</body></envelope>");
         return builder.toString();

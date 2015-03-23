@@ -1,0 +1,10 @@
+Controller\ThreadController.class
+Controller\Controller.class
+Model\ServerModel.class
+Model\DB.class
+Model\Student.class
+Model\Server.class
+Model\ServerException.class
+Model\Faculty.class
+Controller\ControllerException.class
+Model\Group.class
