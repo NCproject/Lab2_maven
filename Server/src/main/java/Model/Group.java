@@ -11,20 +11,20 @@ public class Group {
     /** The faculty. */
     private int fakultyId;
     private int id;
-
+    
     /** The number of group, unique. */
     private String number;
 
     private ArrayList<Student> students = new ArrayList<Student>();
 
     public void setFaculty (int fakultyId) {
-        this.fakultyId = fakultyId;
-    }
-
+		this.fakultyId = fakultyId;
+	}
+    
     public void setId (int id) {
-        this.id = id;
-    }
-
+		this.id = id;
+	}
+    
     @Override
     public String toString() {
         StringBuilder groupString = new StringBuilder ();
@@ -32,17 +32,31 @@ public class Group {
         groupString.append(fakultyId);
         groupString.append(", number=");
         groupString.append(number);
-        groupString.append("]");
+        groupString.append("]");        
         return groupString.toString();
     }
 
     /**
      * Instantiates a new group.
-     *
+     * 
      * @param fakulty the faculty
      * @param number the number
      */
-
+    public Group(int fakultyId, String number) {
+        setFakulty(fakultyId);
+        setNumber(number);
+    }
+    
+    /**
+     * Instantiates a new group.
+     * 
+     * @param fakulty the faculty
+     * @param number the number
+     */
+    public Group(String number, int id) {
+        setId(id);
+        setNumber(number);
+    }
 
     public Group() {
         // TODO Auto-generated constructor stub
@@ -50,7 +64,7 @@ public class Group {
 
     /**
      * Adds the student.
-     *
+     * 
      * @param student the student
      */
     public void addStudent(Student student) {
@@ -59,7 +73,7 @@ public class Group {
 
     /**
      * Removes the student by id.
-     *
+     * 
      * @param id the id
      * @throws ServerException the server exception
      */
@@ -72,7 +86,7 @@ public class Group {
 
     /**
      * Gets the faculty.
-     *
+     * 
      * @return the faculty
      */
     public int getFakulty() {
@@ -81,7 +95,7 @@ public class Group {
 
     /**
      * Sets the fakulty.
-     *
+     * 
      * @param fakulty the new faculty
      */
     public void setFakulty(int fakultyId) {
@@ -90,7 +104,7 @@ public class Group {
 
     /**
      * Gets the number.
-     *
+     * 
      * @return the number
      */
     public String getNumber() {
@@ -99,7 +113,7 @@ public class Group {
 
     /**
      * Sets the number.
-     *
+     * 
      * @param number the new number
      */
     public void setNumber(String number) {
@@ -108,7 +122,7 @@ public class Group {
 
     /**
      * Gets the List of students.
-     *
+     * 
      * @return the students
      * @throws ServerException the server exception
      */
@@ -127,8 +141,8 @@ public class Group {
     public void setStudents(ArrayList<Student> students) {
         this.students = students;
     }
-
+    
     public int getId() {
-        return this.id;
-    }
+		return this.id;
+	}
 }

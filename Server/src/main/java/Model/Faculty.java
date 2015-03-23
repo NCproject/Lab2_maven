@@ -1,11 +1,6 @@
 package Model;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The Class Faculty.
@@ -16,24 +11,33 @@ public class Faculty {
     private String name;
     private int id;
 
-    private ArrayList<Group> groups = new ArrayList<Group>();
-
+    private ArrayList<Group> groups = new ArrayList<Group>();  
+    
     public Faculty() {
-        // TODO Auto-generated constructor stub
+
+    }
+    
+    public Faculty(String name) {
+    	setName(name);
+    }
+    
+    public Faculty(String name, int id) {
+    	setName(name);
+    	setId(id);
     }
 
     /**
      * Adds the group.
-     *
+     * 
      * @param group the group
      */
     public void addGroup(Group group) {
-        groups.add(group);
+    	groups.add(group);
     }
 
     /**
      * Gets the number.
-     *
+     * 
      * @return the number
      */
     public String getName() {
@@ -42,17 +46,17 @@ public class Faculty {
 
     /**
      * Sets the number.
-     *
+     * 
      * @param number the new number
      */
     public void setName(String name) {
         this.name = name;
     }
-
+    
     public int getId(){
-        return this.id;
+    	return this.id;
     }
-
+    
     public void setId(int id) {
         this.id = id;
     }
@@ -60,11 +64,11 @@ public class Faculty {
     public void setGroups(ArrayList<Group> groups) {
         this.groups = groups;
     }
-
+    
     public ArrayList<Group> getGroups(){
-        return this.groups;
+    	return this.groups;
     }
-
-
-
+    
+   
+    
 }

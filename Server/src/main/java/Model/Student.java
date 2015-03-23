@@ -23,10 +23,10 @@ public class Student implements Cloneable {
 
     /** The group number. */
     private int groupId;
-
+    
     /** The enrolled date. */
     private String enrolled;
-
+    
     private int facultyId;
 
     @Override
@@ -42,13 +42,13 @@ public class Student implements Cloneable {
         studentString.append(groupId);
         studentString.append(", enrolled=");
         studentString.append(enrolled);
-        studentString.append("]");
+        studentString.append("]");        
         return studentString.toString();
     }
 
     /**
      * Gets the last name.
-     *
+     * 
      * @return the last name
      */
     public String getLastName() {
@@ -57,7 +57,7 @@ public class Student implements Cloneable {
 
     /**
      * Sets the last name.
-     *
+     * 
      * @param lastName the new last name
      */
     public void setLastName(String lastName) {
@@ -66,7 +66,7 @@ public class Student implements Cloneable {
 
     /**
      * Gets the id.
-     *
+     * 
      * @return the id
      */
     public int getId() {
@@ -75,7 +75,7 @@ public class Student implements Cloneable {
 
     /**
      * Sets the id.
-     *
+     * 
      * @param id the new id
      */
     public void setId(int id) {
@@ -84,7 +84,7 @@ public class Student implements Cloneable {
 
     /**
      * Gets the first name.
-     *
+     * 
      * @return the first name
      */
     public String getFirstName() {
@@ -93,7 +93,7 @@ public class Student implements Cloneable {
 
     /**
      * Sets the first name.
-     *
+     * 
      * @param firstName the new first name
      */
     public void setFirstName(String firstName) {
@@ -102,7 +102,7 @@ public class Student implements Cloneable {
 
     /**
      * Gets the group number.
-     *
+     * 
      * @return the group number
      */
     public int getGroupId() {
@@ -111,7 +111,7 @@ public class Student implements Cloneable {
 
     /**
      * Sets the group number.
-     *
+     * 
      * @param groupNumber the new group number
      */
     public void setGroupId(int groupId) {
@@ -120,7 +120,7 @@ public class Student implements Cloneable {
 
     /**
      * Gets the enrolled date.
-     *
+     * 
      * @return the enrolled
      */
     public String getEnrolled() {
@@ -129,17 +129,17 @@ public class Student implements Cloneable {
 
     /**
      * Sets the enrolled date.
-     *
+     * 
      * @param enrolled the new enrolled
      * @throws ParseException
      */
-    public void setEnrolled(String enrolled) {
+    public void setEnrolled(String enrolled) {       
         this.enrolled = enrolled;
     }
 
     /**
      * Instantiates a new student.
-     *
+     * 
      * @param node the node
      * @throws ServerException if can't read the xml file or data format is wrong
      */
@@ -167,7 +167,7 @@ public class Student implements Cloneable {
 
     /**
      * Creates the student node.
-     *
+     * 
      * @param document the document
      * @param group that contains this student
      */
@@ -183,7 +183,7 @@ public class Student implements Cloneable {
 
     /**
      * Instantiates a new student.
-     *
+     * 
      * @param id the id
      * @param firstName the first name
      * @param lastName the last name
@@ -191,33 +191,47 @@ public class Student implements Cloneable {
      * @param enrolled the enrolled date
      * @throws ServerException
      */
-    public Student(int id, String firstName, String lastName,
-                   int groupId, int facultyId, String enrolled) throws ServerException {
+    public Student(String firstName, String lastName, String enrolled, int id) throws ServerException {
         setId(id);
         setFirstName(firstName);
         setLastName(lastName);
+        setEnrolled(enrolled); 
+    }
+    
+    /**
+     * Instantiates a new student.
+     * 
+     * @param id the id
+     * @param firstName the first name
+     * @param lastName the last name
+     * @param groupNumber the group number
+     * @param enrolled the enrolled date
+     * @throws ServerException
+     */
+    public Student(int groupId, String firstName, String lastName, String enrolled) throws ServerException {        
+        setFirstName(firstName);
+        setLastName(lastName);
         setGroupId(groupId);
-        setFacultyId(facultyId);
-        setEnrolled(enrolled);
+        setEnrolled(enrolled); 
     }
 
     public Student() {
         // TODO Auto-generated constructor stub
     }
-
+    
     /**
      * Return the student`s faculty id
      * @return int
      */
     public int getFacultyId() {
-        return this.facultyId;
+    	return this.facultyId;
     }
-
+    
     /**
      * Set the student`s faculty id
      * @param facultyId id of faculty
      */
     public void setFacultyId(int facultyId) {
-        this.facultyId = facultyId;
+    	this.facultyId = facultyId;
     }
 }

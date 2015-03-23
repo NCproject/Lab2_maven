@@ -1,5 +1,6 @@
 package Controller;
 
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
@@ -8,20 +9,22 @@ import java.util.List;
 import javax.xml.parsers.*;
 import javax.xml.xpath.*;
 
-import Model.*;
-
 import org.apache.log4j.Logger;
 import org.w3c.dom.*;
 import org.xml.sax.*;
 
+import Model.*;
+
 public class ThreadController extends Thread {
-    private boolean connection;
+	private boolean connection;
     private ActionListener controller;
     private ServerModel model;
     private Socket socket;
     private static final Logger log = Logger.getLogger(ThreadController.class);
     private String xmlMessage;
-
+    private String exceptMessage = null;
+    private int resultId = 0;
+        
     /**
      * Set model
      */
@@ -39,20 +42,20 @@ public class ThreadController extends Thread {
             log.debug("Method call");
         this.controller = controller;
     }
-
+    
     /**
      * Starting new thread for every client
      */
-    public ThreadController(Socket s, ActionListener controller, ServerModel model)
-            throws IOException, ServerException {
+    public ThreadController(Socket s, ActionListener controller, ServerModel model) 
+    		throws IOException, ServerException {
         if (log.isDebugEnabled())
-            log.debug("Method call");
+                log.debug("Method call");
         setController(controller);
         setModel(model);
         socket = s;
         start();
     }
-
+    
     @Override
     public void run() {
         try {
@@ -81,13 +84,14 @@ public class ThreadController extends Thread {
             }
         }
     }
-
+    
     /**
      * Creating exception message to answer
      */
     public void exceptionHandling(Exception ex) {
         if (log.isDebugEnabled())
             log.debug("Method call. Arguments: " + ex);
+        exceptMessage = ex.toString();
     }
 
     /**
@@ -131,24 +135,94 @@ public class ThreadController extends Thread {
             Element xHeader = (Element) xDoc.item(0);
             Element xBody = (Element) xDoc.item(1);
             String action = xPath.evaluate("//action", xHeader);
-
+            
             out = new DataOutputStream(socket.getOutputStream());
 
             if ("SIGN".equals(action)) {
-                String login = xPath.evaluate("//login", xBody);
-                String password = xPath.evaluate("//password", xBody);
-                out.writeUTF(authorisationMessage(model.authorisation(login, password)));
-            }
-
+            	String login = xPath.evaluate("//login", xBody);
+            	String password = xPath.evaluate("//password", xBody);
+            	out.writeUTF(authorisationMessage(model.authorisation(login, password)));
+            }            
+            
             if ("SHOW_FILTERS".equals(action)) {
-                out.writeUTF(showMessage(model.getFilters()));
+            	out.writeUTF(showMessage(model.getFilters()));
             }
-
+            
             if ("SEARCH_STUDENTS".equals(action)) {
-                int facultyId = Integer.parseInt(xPath.evaluate("//faculty", xBody));
-                int groupId = Integer.parseInt(xPath.evaluate("//group", xBody));
-                String lastName = xPath.evaluate("//searchText", xBody);
-                out.writeUTF(filterMessage(model.getStudentsByFilters(facultyId, groupId, lastName)));
+            	int facultyId = Integer.parseInt(xPath.evaluate("//faculty", xBody));
+            	int groupId = Integer.parseInt(xPath.evaluate("//group", xBody));
+            	String lastName = xPath.evaluate("//searchText", xBody);
+            	out.writeUTF(filterMessage(model.getStudentsByFilters(facultyId, groupId, lastName)));
+            }  
+            
+            if ("SEARCH_STUDENTS".equals(action)) {
+            	int facultyId = Integer.parseInt(xPath.evaluate("//faculty", xBody));
+            	int groupId = Integer.parseInt(xPath.evaluate("//group", xBody));
+            	String lastName = xPath.evaluate("//searchText", xBody);
+            	out.writeUTF(filterMessage(model.getStudentsByFilters(facultyId, groupId, lastName)));
+            }  
+            
+            if ("REMOVE_STUDENT".equals(action)) {
+            	int id = Integer.parseInt(xPath.evaluate("//id", xBody));
+                runAction(id, "RemoveStudent");
+                out.writeUTF(resultMessage(0,action));
+            }
+            
+            if ("REMOVE_GROUP".equals(action)) {
+            	int id = Integer.parseInt(xPath.evaluate("//id", xBody));
+                runAction(id, "RemoveGroup");
+                out.writeUTF(resultMessage(0,action));
+            }
+            
+            if ("REMOVE_FACULTY".equals(action)) {
+            	int id = Integer.parseInt(xPath.evaluate("//id", xBody));
+                runAction(id, "RemoveFaculty");
+                out.writeUTF(resultMessage(0,action));
+            }
+            
+            if ("ADD_GROUP".equals(action)) {
+            	int facultyId = Integer.parseInt(xPath.evaluate("//faculty", xBody));
+            	String number = xPath.evaluate("//number", xBody);
+                runAction(new Group(facultyId, number), "AddGroup");
+                out.writeUTF(resultMessage(resultId, action));
+            }
+            
+            if ("ADD_FACULTY".equals(action)) {
+            	String name = xPath.evaluate("//name", xBody);
+                runAction(new Faculty(name), "AddFaculty");
+                out.writeUTF(resultMessage(resultId, action));
+            }
+            
+            if ("ADD_STUDENT".equals(action)) {
+            	int groupId = Integer.parseInt(xPath.evaluate("//group", xBody));
+            	String firstName = xPath.evaluate("//studentName", xBody);
+            	String lastName = xPath.evaluate("//studentLastname", xBody);
+            	String enrolled = xPath.evaluate("//enrolledDate", xBody);
+                runAction(new Student(groupId, firstName, lastName, enrolled), "AddStudent");
+                out.writeUTF(resultMessage(resultId, action));
+            }
+            
+            if ("CHANGE_GROUP".equals(action)) {
+            	int groupId = Integer.parseInt(xPath.evaluate("//id", xBody));
+            	String number = xPath.evaluate("//number", xBody);
+                runAction(new Group(number, groupId), "ChangeGroup");
+                out.writeUTF(resultMessage(0, action));
+            }
+            
+            if ("CHANGE_FACULTY".equals(action)) {
+            	int facultyId = Integer.parseInt(xPath.evaluate("//id", xBody));
+            	String name = xPath.evaluate("//name", xBody);
+                runAction(new Faculty(name, facultyId), "ChangeFaculty");
+                out.writeUTF(resultMessage(0, action));
+            }
+            
+            if ("CHANGE_STUDENT".equals(action)) {
+            	int id = Integer.parseInt(xPath.evaluate("//id", xBody));            	
+            	String firstName = xPath.evaluate("//studentName", xBody);
+            	String lastName = xPath.evaluate("//studentLastname", xBody);
+            	String enrolled = xPath.evaluate("//enrolledDate", xBody);
+                runAction(new Student(firstName, lastName, enrolled, id), "ChangeStudent");
+                out.writeUTF(resultMessage(0, action));
             }
         } catch (Exception e) {
             log.error("Exception", e);
@@ -159,14 +233,49 @@ public class ThreadController extends Thread {
             }
         }
     }
-
+    
+    /**
+     * Creating request according to result
+     */
+    private String resultMessage(int id, String action) {
+    	if (log.isDebugEnabled())
+            log.debug("Method call");
+        StringBuilder builder = new StringBuilder();
+        String result;
+        if (exceptMessage == null) {
+            result = "Success";
+        } else {
+            result = "Exception";
+        }
+        builder.append("<envelope><header><action>");
+        builder.append(action);
+        builder.append("</action></header><body>");
+        builder.append("<status>");
+        builder.append(result);
+        builder.append("</status>");
+        if (id != 0) {
+        	builder.append("<id>");
+            builder.append(id);
+            builder.append("</id>");
+            resultId = 0;
+        }
+        if (exceptMessage != null) {
+            builder.append("<stackTrace>");
+            builder.append(exceptMessage);           
+            builder.append("</stackTrace>");
+            exceptMessage = null;
+        }
+        builder.append("</body></envelope>");
+        return builder.toString();
+    }
+    
     /**
      * Create response for authorisation request
      * @param isAuthorised access type
      * @return String
      */
     private String authorisationMessage(boolean isAuthorised) {
-        if (log.isDebugEnabled())
+    	if (log.isDebugEnabled())
             log.debug("Method call");
         StringBuilder builder = new StringBuilder();
         builder.append("<envelope><header><action>SIGN</action></header><body><access>");
@@ -175,14 +284,14 @@ public class ThreadController extends Thread {
         builder.append("</body></envelope>");
         return builder.toString();
     }
-
+    
     /**
      * Create response for show filters request
      * @param faculties all filters
      * @return String
      */
     private String showMessage(List<Faculty> faculties) {
-        if (log.isDebugEnabled())
+    	if (log.isDebugEnabled())
             log.debug("Method call");
         StringBuilder builder = new StringBuilder();
         builder.append("<envelope><header><action>SHOW_FILTERS</action></header><body><faculties>");
@@ -197,18 +306,15 @@ public class ThreadController extends Thread {
             builder.append("<groups>");
             List<Group> groups = faculty.getGroups();
             for (Group group : groups) {
-                builder.append("<group>");
-                builder.append("<id>");
-                builder.append(group.getId());
-                builder.append("</id>");
-                builder.append("<number>");
-                builder.append(group.getNumber());
-                builder.append("</number>");
-                builder.append("<facultyId>");
-                builder.append(group.getFakulty());
-                builder.append("</facultyId>");
-                builder.append("</group>");
-            }
+            	 builder.append("<group>");
+            	 builder.append("<id>");
+                 builder.append(group.getId());
+                 builder.append("</id>");
+            	 builder.append("<number>");
+            	 builder.append(group.getNumber());
+            	 builder.append("</number>");  	 
+            	 builder.append("</group>");
+            }           
             builder.append("</groups>");
             builder.append("</faculty>");
         }
@@ -216,14 +322,14 @@ public class ThreadController extends Thread {
         builder.append("</body></envelope>");
         return builder.toString();
     }
-
+    
     /**
      * Create response for student filter request
      * @param students filtered students
      * @return String
      */
     private String filterMessage(List<Student> students) {
-        if (log.isDebugEnabled())
+    	if (log.isDebugEnabled())
             log.debug("Method call");
         StringBuilder builder = new StringBuilder();
         builder.append("<envelope><header><action>SEARCH_STUDENTS</action></header><body><students>");
@@ -232,12 +338,12 @@ public class ThreadController extends Thread {
             builder.append("<id>");
             builder.append(student.getId());
             builder.append("</id>");
-            builder.append("<studentName>");
+            builder.append("<firstName>");
             builder.append(student.getFirstName());
-            builder.append("</studentName>");
-            builder.append("<studentLastName>");
+            builder.append("</firstName>");    
+            builder.append("<lastName>");
             builder.append(student.getLastName());
-            builder.append("</studentLastName>");
+            builder.append("</lastName>");
             builder.append("<group>");
             builder.append(student.getGroupId());
             builder.append("</group>");
@@ -261,10 +367,24 @@ public class ThreadController extends Thread {
         if (log.isDebugEnabled())
             log.debug("Method call");
         StringBuilder builder = new StringBuilder();
-        builder.append("<envelope><header><action>CLOSE</action></header><body><message>");
-        builder.append(message);
-        builder.append("</message></body></envelope>");
+        builder.append("<envelope><header><action>CLOSE</action></header><body><message>");     
+        builder.append(message);        
+        builder.append("</message></body></envelope>");        
 
         return builder.toString();
+    }
+    
+    /**
+     * Creating action and send it to controller
+     */
+    private void runAction(Object source, String command) {
+        if (log.isDebugEnabled())
+            log.debug("Method call " + command + " " + source);
+        ActionEvent event = new ActionEvent(source, 0, command);
+        controller.actionPerformed(event);
+    }
+    
+    public void setResultId(int id) {
+    	this.resultId = id;
     }
 }
