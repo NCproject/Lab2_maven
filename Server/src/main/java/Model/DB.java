@@ -280,7 +280,7 @@ public class DB {
 		if (log.isDebugEnabled())
 			log.debug("Remove faculty. Id = " + id);
 		Statement st = conn.createStatement();
-		st.execute("DELETE FACULTIES WHERE ID = " + id);
+		st.execute("DELETE FROM FACULTIES WHERE ID = " + id);
 	}
 
 	/**
@@ -293,7 +293,7 @@ public class DB {
 		if (log.isDebugEnabled())
 			log.debug("Remove group. Id = " + id);
 		Statement st = conn.createStatement();
-		st.execute("DELETE GROUPS WHERE ID = " + id);
+		st.execute("DELETE FROM GROUPS WHERE ID = " + id);
 	}
 
 	/**
@@ -306,7 +306,7 @@ public class DB {
 		if (log.isDebugEnabled())
 			log.debug("Remove student. Id = " + id);
 		Statement st = conn.createStatement();
-		st.execute("DELETE STUDENTS WHERE ID = " + id);
+		st.execute("DELETE FROM STUDENTS WHERE ID = " + id);
 	}
 	
 	/**
