@@ -195,7 +195,7 @@ public class DB {
 		st.execute("INSERT INTO GROUPS" +
 				"(FACULTY_ID, NUMBER)" +
 				" VALUES(" +
-				group.getFakulty() +
+				group.getFakulty() + "," +
 				"'" + group.getNumber() + "'" +
 				")");				
 		return getId("groups");
@@ -215,9 +215,9 @@ public class DB {
 		st.execute("INSERT INTO STUDENTS" +
 				"(GROUP_ID, FIRST_NAME, LAST_NAME, ENROLLED)" +
 				" VALUES(" +
-				student.getGroupId() +
-				"'" + student.getFirstName() + "'" +
-				"'" + student.getLastName() + "'" +
+				student.getGroupId() + "," +
+				"'" + student.getFirstName() + "'" + "," +
+				"'" + student.getLastName() + "'" + "," +
 				"'" + student.getEnrolled() + "'" +
 				")");
 		return getId("students");
@@ -264,8 +264,8 @@ public class DB {
 			log.debug("Update student. " + student.toString());
 		Statement st = conn.createStatement();
 		st.execute("UPDATE STUDENTS SET " +
-				"FIRST_NAME = '" + student.getFirstName() + "'" +
-				"LAST_NAME = '" + student.getLastName() + "'" +
+				"FIRST_NAME = '" + student.getFirstName() + "'" + "," +
+				"LAST_NAME = '" + student.getLastName() + "'" + "," +
 				"ENROLLED = '" + student.getEnrolled() + "'" +
 				"WHERE ID = " + student.getId());
 	}
@@ -280,7 +280,7 @@ public class DB {
 		if (log.isDebugEnabled())
 			log.debug("Remove faculty. Id = " + id);
 		Statement st = conn.createStatement();
-		st.execute("DELETE FACULTIES WHERE ID = " + id);
+		st.execute("DELETE FROM FACULTIES WHERE ID = " + id);
 	}
 
 	/**
@@ -293,7 +293,7 @@ public class DB {
 		if (log.isDebugEnabled())
 			log.debug("Remove group. Id = " + id);
 		Statement st = conn.createStatement();
-		st.execute("DELETE GROUPS WHERE ID = " + id);
+		st.execute("DELETE FROM GROUPS WHERE ID = " + id);
 	}
 
 	/**
@@ -306,7 +306,7 @@ public class DB {
 		if (log.isDebugEnabled())
 			log.debug("Remove student. Id = " + id);
 		Statement st = conn.createStatement();
-		st.execute("DELETE STUDENTS WHERE ID = " + id);
+		st.execute("DELETE FROM STUDENTS WHERE ID = " + id);
 	}
 	
 	/**
