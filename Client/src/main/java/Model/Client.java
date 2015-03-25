@@ -8,7 +8,8 @@ import java.util.List;
 import java.io.*;
 
 import javax.swing.table.DefaultTableModel;
-import javax.xml.parsers.DocumentBuilderFactory;
+
+import javax.xml.parsers.*;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -16,7 +17,8 @@ import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.w3c.dom.Document;
+import org.w3c.dom.*;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -42,13 +44,15 @@ public class Client implements ClientModel{
     /** List of students. */
     private List<Student> studentsList;
 
+    private Integer groupID;
+    private Integer facultyID;
+
     private String access;
 
-    private ArrayList filter_faculty;
-    private String serverTest = "Server testing";
 
     /** Answer from server side. */
     private String xmlResult;
+
     public Client(){
 
     }
@@ -107,38 +111,28 @@ public class Client implements ClientModel{
             message.append("</header><body>");
         }
 
-        if ("SHOW".equals(ACTION)) {
+        if ("ADD_FACULTY".equals(ACTION)  || "CHANGEFaculty".equals(ACTION)) {
             message.append("</header><body>");
-            message.append("<facultyID>");
-            message.append(facultyID);
-            message.append("</facultyID>");
-            message.append("<groupID>");
-            message.append(groupID);
-            message.append("</groupID>");
-        }
-
-        if ("ADDFaculty".equals(ACTION)  || "CHANGEFaculty".equals(ACTION)) {
-            message.append("</header><body>");
-            message.append("<facultyName>");
+            message.append("<name>");
             message.append(faculty);
-            message.append("</facultyName>");
+            message.append("</name>");
         }
 
-        if ("REMOVEFaculty".equals(ACTION)) {
+        if ("REMOVE_FACULTY".equals(ACTION)) {
+            message.append("</header><body>");
+            message.append("<id>");
+            message.append(facultyID);
+            message.append("</id>");
+        }
+
+        if ("ADD_GROUP".equals(ACTION)) {
             message.append("</header><body>");
             message.append("<facultyID>");
             message.append(facultyID);
             message.append("</facultyID>");
-        }
-
-        if ("ADDGroup".equals(ACTION)) {
-            message.append("<facultyID>");
-            message.append(facultyID);
-            message.append("</facultyID>");
-            message.append("</header><body>");
-            message.append("<groupName>");
+            message.append("<number>");
             message.append(group);
-            message.append("</groupName>");
+            message.append("</number>");
         }
 
         if ("CHANGEGroup".equals(ACTION)) {
@@ -151,15 +145,21 @@ public class Client implements ClientModel{
             message.append("</groupName>");
         }
 
-        if ("REMOVEGroup".equals(ACTION)) {
+        if ("REMOVE_GROUP".equals(ACTION)) {
             message.append("</header><body>");
-            message.append("<groupID>");
+            message.append("<id>");
             message.append(groupID);
-            message.append("</groupID>");
+            message.append("</id>");
         }
 
-        if ("SEARCHStudent".equals(ACTION)) {
+        if ("SEARCH_STUDENTS".equals(ACTION)) {
             message.append("</header><body>");
+            message.append("<faculty>");
+            message.append(facultyID);
+            message.append("</faculty>");
+            message.append("<group>");
+            message.append(groupID);
+            message.append("</group>");
             message.append("<searchText>");
             message.append(searchText);
             message.append("</searchText>");
@@ -204,40 +204,61 @@ public class Client implements ClientModel{
             NodeList xDoc = (NodeList) result;
 
             NodeList xHeader = (NodeList) xDoc.item(0);
-            NodeList xBody = (NodeList) xDoc.item(1).getFirstChild();
+            Node xItem =  xDoc.item(1);
+            NodeList xBody = (NodeList) xItem.getFirstChild();
             String action = xPath.evaluate("//action", xHeader);
             if ("SHOW_FILTERS".equals(action)) {
-               facultiesList = new ArrayList<Faculty>();
+                facultiesList = new ArrayList<Faculty>();
                 studentsList = new ArrayList<Student>();
                 //evaluate строка compile узел
-
-                XPathExpression expr2 = xPath.compile("//faculties");
+                Integer facultyId = 0;
+                XPathExpression expr2 = xPath.compile("//faculties/*");
                 NodeList xFaculties = (NodeList) expr2.evaluate(doc, XPathConstants.NODESET);
+                Integer ik = xFaculties.getLength();
                 for (int i = 0; i < xFaculties.getLength(); i++) {
                     Faculty faculty = new Faculty();
-                    Integer facultyId = Integer.parseInt(xPath.evaluate("//id", xFaculties.item(i)));
-                    faculty.setId(facultyId);
-                    faculty.setName(xPath.evaluate("//name", xFaculties.item(i)));
-                    XPathExpression expr3 = xPath.compile("//groups");
-                    NodeList xGroups = (NodeList) expr2.evaluate(doc, XPathConstants.NODESET);
-                    for (int j = 0; j < xFaculties.getLength(); j++) {
-                        Integer id = Integer.parseInt(xPath.evaluate("//id", xGroups.item(j)));
-                        String name = xPath.evaluate("//name", xGroups.item(j));
-                        Group group = new Group(facultyId, name);
-                       faculty.addGroup(group);
+                    Element g = (Element) xFaculties.item(i);
+                    faculty.setId(Integer.parseInt(g.getFirstChild().getTextContent()));
+                    faculty.setName(xPath.evaluate("name", g));
+                    NodeList fh = g.getElementsByTagName("group");
+                    Group gh = new Group();
+                    Integer size = fh.getLength();
+                    for (int u = 0; u < fh.getLength(); u++) {
+                        Element studentElement = (Element) fh.item(u);
+                        Integer groupId = Integer.parseInt(studentElement.getFirstChild().getTextContent());
+                        gh.setID(groupId);
+                        gh.setNumber(xPath.evaluate("number", studentElement));
+                        faculty.addGroup(gh);
                     }
                     this.facultiesList.add(faculty);
                 }
             } else  if ("SIGN".equals(action)){
                 String access = xPath.evaluate("//access", xBody);
                 this.access = access;
-            } else {
+            } else  if ("ADD_Group".equals(action)){
+                String access = xPath.evaluate("//id", xBody);
+                this.access = access;
+            }else  if ("SEARCH_STUDENTS".equals(action)){
+
+                XPathExpression expr3 = xPath.compile("//students/*");
+                NodeList xStudents = (NodeList) expr3.evaluate(doc, XPathConstants.NODESET);
+                Integer ik = xStudents.getLength();
+                for (int i = 0; i < xStudents.getLength(); i++) {
+                    Student student = new Student();
+                    Element g = (Element) xStudents.item(i).getFirstChild();
+                    student.setId(Integer.parseInt(xPath.evaluate("id", g)));
+                    student.setFirstName(xPath.evaluate("firstName", g));
+                    student.setLastName(xPath.evaluate("lastName", g));
+                    student.setEnrolled(xPath.evaluate("enrolledDate", g));
+                    this.studentsList.add(student);
+            }}
+            else {
                 serverAnswer = action;
                 if ("Exception".equals(action)) {
                     NodeList xException = (NodeList) xPath.evaluate("//envelope/body", is, XPathConstants.NODESET);
                     stackTrace = xPath.evaluate("//stackTrace", xException);
-                }
-            }
+                }}
+
         }catch(XPathExpressionException e){
             throw new ServerException(e);
         }catch(ParserConfigurationException e){
@@ -265,26 +286,70 @@ public class Client implements ClientModel{
         }
         sendMessage(createMessage("SHOW_FILTERS", null, null, null, null, null, null, null, null, null));
         parsingAnswer(reading());
-        return studentsList;
+        return facultiesList;
     }
 
-    public List getStudents(Integer facultyID, Integer groupID) throws ServerException, ClientException {
+
+    public Integer addGroup( Integer facultyID, String group) throws ServerException, ClientException {
         if (log.isDebugEnabled()){
-            log.debug("Called get students");
+            log.debug("Called adding student");
         }
-        sendMessage(createMessage("SHOW", null, null, null, null, null, null, facultyID, groupID, null));
+        sendMessage(createMessage("ADD_GROUP", null, group, null, null, null, null, facultyID, null, null));
         parsingAnswer(reading());
-        return studentsList;
+        if ("Exception".equals(serverAnswer)) {
+            throw new ServerException(stackTrace);
+        }
+        return groupID;
     }
 
-    public List getSearchList(String searchText) throws ServerException, ClientException {
+    public Integer removeGroup( Integer groupID) throws ServerException, ClientException {
         if (log.isDebugEnabled()){
-            log.debug("Called get students after searching");
+            log.debug("Called adding student");
         }
-        sendMessage(createMessage("SEARCHStudent", null, null, null, null, null, null, null, null, searchText));
+        sendMessage(createMessage("REMOVE_GROUP", null, null, null, null, null, null, null, groupID, null));
         parsingAnswer(reading());
-        return studentsList;
+        if ("Exception".equals(serverAnswer)) {
+            throw new ServerException(stackTrace);
+        }
+        return groupID;
     }
 
+
+    public Integer addFaculty( String faculty) throws ServerException, ClientException {
+        if (log.isDebugEnabled()){
+            log.debug("Called adding student");
+        }
+        sendMessage(createMessage("ADD_FACULTY", faculty, null, null, null, null, null, null, null, null));
+        parsingAnswer(reading());
+        if ("Exception".equals(serverAnswer)) {
+            throw new ServerException(stackTrace);
+        }
+        return facultyID;
+    }
+
+
+    public Integer deleteFaculty( Integer facultyID) throws ServerException, ClientException {
+        if (log.isDebugEnabled()){
+            log.debug("Called adding student");
+        }
+        sendMessage(createMessage("REMOVE_FACULTY", null, null, null, null, null,null, facultyID, null, null));
+        parsingAnswer(reading());
+        if ("Exception".equals(serverAnswer)) {
+            throw new ServerException(stackTrace);
+        }
+        return groupID;
+    }
+
+    public List<Student> showStudents( Integer facultyID, Integer groupID, String searchText) throws ServerException, ClientException {
+        if (log.isDebugEnabled()){
+            log.debug("Called adding student");
+        }
+        sendMessage(createMessage("SEARCH_STUDENTS", null, null, null, null, null,null, facultyID, groupID, searchText));
+        parsingAnswer(reading());
+        if ("Exception".equals(serverAnswer)) {
+            throw new ServerException(stackTrace);
+        }
+        return studentsList;
+    }
 
  }

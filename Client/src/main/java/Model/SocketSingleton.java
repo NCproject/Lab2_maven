@@ -7,7 +7,7 @@ import java.net.Socket;
 import Exception.*;
 
 public class SocketSingleton {
-    private static int serverPort = 7070;
+    private static int serverPort = 8092;
     private static String address = "127.0.0.1";
     private static Socket socket;
 

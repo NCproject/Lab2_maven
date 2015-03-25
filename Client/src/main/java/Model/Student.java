@@ -29,6 +29,11 @@ public class Student {
     /** The enrolled. */
     private String enrolled;
 
+    public Student(){
+        // TODO Auto-generated constructor stub
+    }
+
+
     /**
      * Gets the last name.
      *

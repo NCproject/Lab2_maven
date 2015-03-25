@@ -11,15 +11,14 @@ import javax.swing.event.PopupMenuListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
 
 import Exception.*;
+
+import static java.awt.BorderLayout.CENTER;
 
 public class MainView extends JFrame implements ClientView {
 
@@ -28,7 +27,7 @@ public class MainView extends JFrame implements ClientView {
     private JSplitPane JSP_Create = new JSplitPane();
     private JScrollPane JS_Table = new JScrollPane();
     private JLabel JL_Faculty = new JLabel("Faculty:");
-    private JComboBox JCB_Faculty = new JComboBox();
+    private JComboBox<Faculty> JCB_Faculty = new JComboBox<>();
     private JLabel JL_Group = new JLabel("Group:");
     private JComboBox JCB_Group = new JComboBox();
     private JButton JB_AddFaculty = new JButton("+");
@@ -44,6 +43,11 @@ public class MainView extends JFrame implements ClientView {
     private JTextField JTF_Search = new JTextField("Name of student...");
     private JButton JB_SignIn = new JButton("Sign in");
 
+    private JLabel JLName = new JLabel("Name:");
+    private JTextField JTF_Name = new JTextField("Name ...");
+    private JButton JB_AddNewFaculty = new JButton("OK");
+    private JButton JB_CancelCreate = new JButton("CANCEL");
+
     private Object[] headers = {"First Name", "Last Name", "Faculty", "Group", "Enrolled"};
     private JTable JT_Students;
    /* private Object[][] data = {
@@ -52,6 +56,8 @@ public class MainView extends JFrame implements ClientView {
     };*/
 
     private  String[] ist;
+
+    private boolean addButtonClick;
 
     /** The logger. */
     private static final Logger logger = Logger.getLogger(MainView.class);
@@ -69,7 +75,6 @@ public class MainView extends JFrame implements ClientView {
         setResizable(false);
         ConfigureMainWindow();
         setVisible(true);
-
     }
 
     @Override
@@ -80,8 +85,6 @@ public class MainView extends JFrame implements ClientView {
         getContentPane().setLayout(new BorderLayout());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
        // JT_Students = new JTable(data, headers);
-        JS_Table = new JScrollPane(JT_Students);
-        getContentPane().add(JS_Table, BorderLayout.CENTER);
 
         JP_Filter.setLayout(new GridBagLayout());
         JP_Filter.setBorder(BorderFactory.createTitledBorder("Filter"));
@@ -96,11 +99,14 @@ public class MainView extends JFrame implements ClientView {
         addComponentToMainPanel(JB_AddGroup, 3, 1, 1, 5, 0, 0, 0 );
         addComponentToMainPanel(JB_DeleteGroup, 4, 1, 1, 5, 0, 0, 0 );
         addComponentToMainPanel(JB_Update, 0, 3, 5, 5, 0, 10, 0 );
-
-
-
         JSP_Create.setDividerLocation(400);
-        JSP_Create.setDividerSize(2);
+        JSP_Create.setDividerSize(0);
+
+        JB_AddFaculty.addActionListener(setActionToButtonNew());
+
+        JB_AddGroup.addActionListener(setActionToButtonNew());
+
+
         JSP_Create.setLeftComponent(JP_Filter);
         JP_Create.setLayout(new BorderLayout());
         JP_Create.setBorder(BorderFactory.createTitledBorder("Search"));
@@ -137,15 +143,7 @@ public class MainView extends JFrame implements ClientView {
         return loginView;
     }
 
-    public void setFacultyList(List<Faculty> facultyList){
-        this.facultyList = facultyList;
-    }
-
     public JButton getButtonSignIn(){
-        return JB_SignIn;
-    }
-
-    public JButton getJB_SignIn(){
         return JB_SignIn;
     }
 
@@ -168,7 +166,70 @@ public class MainView extends JFrame implements ClientView {
         return JB_Update;
     }
 
+    public String getNew(){
+        return JTF_Name.getText();
+    }
 
+    public JButton getJButtonAddNEw(){
+        return JB_AddNewFaculty;
+    }
 
+    public JButton getJB_DeleteFaculty(){
+        return JB_DeleteFaculty;
+    }
+
+    private ActionListener setActionToButtonNew(){
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JSP_Create.setRightComponent(null);
+                JPanel JP_AddFaculty = new JPanel();
+                JP_AddFaculty.setLayout(new GridBagLayout());
+                JP_AddFaculty.setBorder(BorderFactory.createTitledBorder("Create a new:"));
+                JP_AddFaculty.setLayout(new BorderLayout());
+                JP_AddFaculty.add(JTF_Name, BorderLayout.CENTER);
+                JSP_Create.setDividerLocation(400);
+                JPanel buttonPanel = new JPanel();
+                buttonPanel.add(JB_AddNewFaculty);
+                buttonPanel.add(JB_CancelCreate);
+                JP_AddFaculty.add(buttonPanel, BorderLayout.SOUTH);
+                JSP_Create.setRightComponent(JP_AddFaculty);
+                if (e.getSource().equals(JB_AddFaculty)){
+                    addButtonClick = true;
+
+                } else {
+                    addButtonClick = false;
+                }
+                JTF_Name.setText("Name...");
+                JTF_Name.setDisabledTextColor(Color.GRAY);
+                JTF_Name.addFocusListener(new FocusListener() {
+                    @Override
+                    public void focusGained(FocusEvent e) {
+                        JTF_Name.setText(null);
+                    }
+
+                    @Override
+                    public void focusLost(FocusEvent e) {
+
+                    }
+                });
+            }
+        };
+    }
+
+    public boolean getButtonAddClick(){
+        return addButtonClick;
+    }
+
+    public JButton getJB_DeleteGroup(){
+        return JB_DeleteGroup;
+    }
+
+    public void setModelToTableOfStudents(DefaultTableModel dm){
+        JT_Students = new JTable(dm);
+        JS_Table = new JScrollPane(JT_Students);
+        getContentPane().add(JS_Table, BorderLayout.CENTER);
+        JS_Table.setVisible(true);
+    }
 
 }

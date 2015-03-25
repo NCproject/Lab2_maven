@@ -24,9 +24,14 @@ public class Group {
     /** The group. */
     private Element group;
 
+    private Integer id;
+
     /** The faculty. */
     private int facultyId;
 
+    public Group(){
+        // TODO Auto-generated constructor stub
+    }
 
     /**
      * Instantiates a new group.
@@ -81,5 +86,13 @@ public class Group {
 
     public String toString(){
         return number;
+    }
+
+    public void setID(Integer id){
+        this.id = id;
+    }
+
+    public Integer getID(){
+        return id;
     }
 }
