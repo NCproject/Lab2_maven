@@ -11,17 +11,10 @@ import Model.*;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.net.InetAddress;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.awt.BorderLayout.CENTER;
 
 public class ClientController {
     private MainView view;
@@ -29,13 +22,10 @@ public class ClientController {
     private Client client;
     private String access;
     private List<Faculty> faculties;
-
-    private List<Student> students;
-
+    private List<Student> students = new ArrayList<>();
     private Integer groupID;
     private Integer facultyID;
-    private DefaultTableModel model1;
-    /** The logger. */
+    private Integer studentID;
     private static final Logger logger = Logger.getLogger(ClientController.class);
 
     public ClientController(Client client, final MainView view ) {
@@ -55,11 +45,16 @@ public class ClientController {
                         if (access.equals("allow")){
                             view.setEnabledComponents(true);
                             loginView.setVisible(false);
+                            Component[] c =  view.getJP_CreateStudent().getComponents();
+                            for (Component k: c){
+                                k.setEnabled(true);
 
+                            }
+                            view.getButtonSignIn().setVisible(false);
                         }else {
                             view.setEnabledComponents(false);
                             loginView.setNullToTF();
-                            view.showMessage("Please, insert again!");
+                            view.showMessage("An incorrect password or username. Please enter again!");
                         }
                     }
                 });
@@ -102,14 +97,38 @@ public class ClientController {
             }
         });
 
+
         view.getJB_Update().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    view.setModelToTableOfStudents(getObjectModel(showStudents()));
-                } catch (ClientException e1) {
-                    e1.printStackTrace();
-                }
+                    showStudents("");
+                    view.buildTable(students);
+            }
+        });
+
+        view.getJB_AddStudent().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addStudent();
+                showStudents("");
+                view.buildTable(students);
+            }
+        });
+
+        view.getJB_ClearStudent().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeStudent();
+                showStudents("");
+                view.buildTable(students);
+            }
+        });
+
+        view.getJB_Search().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showStudents(view.getTextFromJTF_Search());
+                view.buildTable(students);
             }
         });
     }
@@ -119,13 +138,10 @@ public class ClientController {
             logger.debug("Called method to get data from server");
         }
         try{
-            access = client.getSign(login, password);
-        }catch (ClientException e){
+            this.access = client.getSign(login, password);
+        }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
             view.getLoginView().showMessage("Can't update data from server!" );
-        }catch (ServerException e){
-            logger.error("Can't update data form server",e);
-            view.getLoginView().showMessage("Can't update data from server!");
         }
         return access;
     }
@@ -136,14 +152,11 @@ public class ClientController {
         }
         try{
             if (client.getFilters()!= null) {
-               faculties = client.getFilters();
+               this.faculties = client.getFilters();
             }
-        }catch (ClientException e){
+        }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!" );
-        }catch (ServerException e){
-            logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!");
+            view.getLoginView().showMessage("Can't update data from server!");
         }
         return faculties;
 
@@ -158,12 +171,9 @@ public class ClientController {
                 Faculty temp = (Faculty) view.getJCB_Faculty().getSelectedItem();
                 groupID = client.addGroup(temp.getId(), view.getNew());
             }
-        }catch (ClientException e){
+        }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!" );
-        }catch (ServerException e){
-            logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!");
+            view.getLoginView().showMessage("Can't update data from server!");
         }
         return groupID;
 
@@ -177,12 +187,9 @@ public class ClientController {
             if (!view.getNew().equals("")){
                 facultyID = client.addFaculty(view.getNew());
             }
-        }catch (ClientException e){
+        }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!" );
-        }catch (ServerException e){
-            logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!");
+            view.getLoginView().showMessage("Can't update data from server!");
         }
         return facultyID;
 
@@ -197,12 +204,9 @@ public class ClientController {
                 Faculty temp = (Faculty) view.getJCB_Faculty().getSelectedItem();
                 facultyID = client.deleteFaculty(temp.getId());
             }
-        }catch (ClientException e){
+        }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!" );
-        }catch (ServerException e){
-            logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!");
+            view.getLoginView().showMessage("Can't update data from server!");
         }
         return groupID;
     }
@@ -216,36 +220,69 @@ public class ClientController {
                 Group temp = (Group) view.getJCB_Group().getSelectedItem();
                 groupID = client.removeGroup(temp.getID());
             }
-        }catch (ClientException e){
+        }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!" );
-        }catch (ServerException e){
-            logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!");
+            view.getLoginView().showMessage("Can't update data from server!");
         }
         return groupID;
     }
 
-    private List<Student> showStudents(){
+    private void showStudents(String searchText) throws NullPointerException{
         if (logger.isDebugEnabled()){
             logger.debug("Called method to get data from server");
         }
         try{
-            Faculty f = (Faculty) view.getJCB_Faculty().getSelectedItem();
-            Group g = (Group) view.getJCB_Group().getSelectedItem();
-            if (!f.equals(null) && ! g.equals(null)){
-                students = client.showStudents(f.getId(), g.getID(), " ");
-
+            if (view.getJCB_Faculty().getItemCount()!= 0 && view.getJCB_Group().getItemCount() != 0){
+                Faculty f = (Faculty) view.getJCB_Faculty().getSelectedItem();
+                Group g = (Group) view.getJCB_Group().getSelectedItem();
+                    if (students.size() == 0){
+                    this.students = client.showStudents(f.getId(), g.getID(), searchText);}
+                else{
+                        this.students.clear();
+                        this.students = client.showStudents(f.getId(), g.getID(), searchText);
+                    }
             }
-        }catch (ClientException e){
-            logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!" );
-        }catch (ServerException e){
-            logger.error("Can't update data form server",e);
-            view.showMessage("Can't update data from server!");
-        }
-        return students;
 
+        }catch (ClientException | ServerException e){
+            logger.error("Can't update data form server",e);
+            view.getLoginView().showMessage("Can't update data from server!");
+        }
+    }
+
+    private Integer addStudent() throws NullPointerException{
+        if (logger.isDebugEnabled()){
+            logger.debug("Called method to get data from server");
+        }
+        try{
+            if (view.getJCB_Group().getItemCount() != 0){
+
+                Group g = (Group) view.getJCB_Group().getSelectedItem();
+                Integer group = g.getID();
+                String first = view.getTextFromJTF_FirstName();
+                String last = view.getTextFromJTF_LastName();
+                String date = view.getTextFromJTF_Enrolled();
+                this.studentID = client.addStudent(group, first, last, date);
+            }
+
+        }catch (ClientException | ServerException e){
+            logger.error("Can't update data form server",e);
+            view.getLoginView().showMessage("Can't update data from server!");
+        }
+        return studentID;
+    }
+
+    private void removeStudent() throws NullPointerException{
+        if (logger.isDebugEnabled()){
+            logger.debug("Called method to get data from server");
+        }
+        try{
+                Integer h = view.getJT_Students().getSelectedRow();
+                view.getJB_ClearStudent().setEnabled(true);
+                client.removeStudent(view.getStudents().get(h).getId());
+        }catch (ClientException | ServerException e){
+            logger.error("Can't update data form server",e);
+            view.getLoginView().showMessage("Can't update data from server!");
+        }
     }
 
     private void getFilters(){
@@ -267,7 +304,6 @@ public class ClientController {
                         view.getJCB_Group().addItem(g);
                     }
                 }
-
             }
         }
         view.getJCB_Faculty().addActionListener(new ActionListener() {
@@ -286,25 +322,5 @@ public class ClientController {
         });
     }
 
-    public DefaultTableModel getObjectModel(List<Student> students) throws ClientException {
-        if (logger.isDebugEnabled()){
-            logger.debug("Called method to get object model");
-        }
-              String[][] data = new String[students.size()][4];
-                Object[] columnNames = new Object[4];
-                columnNames[0] = "firstname";
-                columnNames[1] = "lastname";
-                columnNames[2] = "enrolled";
-                columnNames[3] = "groupnumber";
-        int i = 0;
-                for (Student st : students) {
-                        data[i][0] = st.getFirstName();
-                        data[i][1] = st.getLastName();
-                        data[i][2] = st.getEnrolled();
-                        data[i][3] = st.getGroupNumber();
-                   i++;
-                }
-                model1 = new DefaultTableModel(data, columnNames);
-                return model1;
-        }
+
 }

@@ -1,13 +1,8 @@
 package Model;
 
-import java.net.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.*;
-
-import javax.swing.table.DefaultTableModel;
 
 import javax.xml.parsers.*;
 import javax.xml.parsers.ParserConfigurationException;
@@ -30,28 +25,21 @@ import Exception.*;
 public class Client implements ClientModel{
     /** The logger. */
     private static final Logger log = Logger.getLogger(Client.class);
-    private DataOutputStream out;
-    private DataInputStream in;
     private String serverAnswer;
     private String stackTrace;
 
     /** List of faculties. */
     private List<Faculty> facultiesList;
 
-    /** List of groups. */
-    private List<Group> groupsList;
-
     /** List of students. */
     private List<Student> studentsList;
 
     private Integer groupID;
     private Integer facultyID;
+    private Integer studentID;
 
     private String access;
 
-
-    /** Answer from server side. */
-    private String xmlResult;
 
     public Client(){
 
@@ -64,7 +52,7 @@ public class Client implements ClientModel{
             log.debug("Called send message");
         }
         try {
-            out = new DataOutputStream(SocketSingleton.getSocket().getOutputStream());
+            DataOutputStream out = new DataOutputStream(SocketSingleton.getSocket().getOutputStream());
             out.writeUTF(message);
         } catch (IOException e) {
             throw new ClientException(e);
@@ -165,6 +153,29 @@ public class Client implements ClientModel{
             message.append("</searchText>");
         }
 
+        if ("ADD_STUDENT".equals(ACTION)){
+            message.append("</header><body>");
+            message.append("<group>");
+            message.append(groupID);
+            message.append("</group>");
+            message.append("<studentName>");
+            message.append(firstName);
+            message.append("</studentName>");
+            message.append("<studentLastname>");
+            message.append(lastName);
+            message.append("</studentLastname>");
+            message.append("<enrolledDate>");
+            message.append(enrolledDate);
+            message.append("</enrolledDate>");
+        }
+
+        if ("REMOVE_STUDENT".equals(ACTION)){
+            message.append("</header><body>");
+            message.append("<id>");
+            message.append(studentID);
+            message.append("</id>");
+        }
+
         message.append("</body></envelope>");
         return message.toString();
     }
@@ -176,8 +187,10 @@ public class Client implements ClientModel{
         if (log.isDebugEnabled()){
             log.debug("Reading stream called");
         }
+        /* Answer from server side. */
+        String xmlResult;
         try {
-            in = new DataInputStream(SocketSingleton.getSocket().getInputStream());
+            DataInputStream in = new DataInputStream(SocketSingleton.getSocket().getInputStream());
             xmlResult = in.readUTF();
         } catch (Exception e) {
             throw new ServerException(e);
@@ -208,13 +221,11 @@ public class Client implements ClientModel{
             NodeList xBody = (NodeList) xItem.getFirstChild();
             String action = xPath.evaluate("//action", xHeader);
             if ("SHOW_FILTERS".equals(action)) {
-                facultiesList = new ArrayList<Faculty>();
-                studentsList = new ArrayList<Student>();
+                facultiesList = new ArrayList<>();
+                studentsList = new ArrayList<>();
                 //evaluate строка compile узел
-                Integer facultyId = 0;
                 XPathExpression expr2 = xPath.compile("//faculties/*");
                 NodeList xFaculties = (NodeList) expr2.evaluate(doc, XPathConstants.NODESET);
-                Integer ik = xFaculties.getLength();
                 for (int i = 0; i < xFaculties.getLength(); i++) {
                     Faculty faculty = new Faculty();
                     Element g = (Element) xFaculties.item(i);
@@ -222,7 +233,6 @@ public class Client implements ClientModel{
                     faculty.setName(xPath.evaluate("name", g));
                     NodeList fh = g.getElementsByTagName("group");
                     Group gh = new Group();
-                    Integer size = fh.getLength();
                     for (int u = 0; u < fh.getLength(); u++) {
                         Element studentElement = (Element) fh.item(u);
                         Integer groupId = Integer.parseInt(studentElement.getFirstChild().getTextContent());
@@ -233,20 +243,16 @@ public class Client implements ClientModel{
                     this.facultiesList.add(faculty);
                 }
             } else  if ("SIGN".equals(action)){
-                String access = xPath.evaluate("//access", xBody);
-                this.access = access;
+                this.access = xPath.evaluate("//access", xBody);
             } else  if ("ADD_Group".equals(action)){
-                String access = xPath.evaluate("//id", xBody);
-                this.access = access;
+                this.access = xPath.evaluate("//id", xBody);
             }else  if ("SEARCH_STUDENTS".equals(action)){
-
                 XPathExpression expr3 = xPath.compile("//students/*");
                 NodeList xStudents = (NodeList) expr3.evaluate(doc, XPathConstants.NODESET);
-                Integer ik = xStudents.getLength();
                 for (int i = 0; i < xStudents.getLength(); i++) {
                     Student student = new Student();
-                    Element g = (Element) xStudents.item(i).getFirstChild();
-                    student.setId(Integer.parseInt(xPath.evaluate("id", g)));
+                    Element g = (Element) xStudents.item(i);
+                    student.setId(Integer.parseInt(g.getFirstChild().getTextContent()));
                     student.setFirstName(xPath.evaluate("firstName", g));
                     student.setLastName(xPath.evaluate("lastName", g));
                     student.setEnrolled(xPath.evaluate("enrolledDate", g));
@@ -259,13 +265,7 @@ public class Client implements ClientModel{
                     stackTrace = xPath.evaluate("//stackTrace", xException);
                 }}
 
-        }catch(XPathExpressionException e){
-            throw new ServerException(e);
-        }catch(ParserConfigurationException e){
-            throw new ServerException(e);
-        }catch(SAXException e){
-            throw new ServerException(e);
-        }catch(IOException e){
+        }catch(XPathExpressionException | IOException | ParserConfigurationException | SAXException e){
             throw new ServerException(e);
         }
     }
@@ -280,7 +280,7 @@ public class Client implements ClientModel{
         return access;
     }
 
-    public List getFilters() throws ServerException, ClientException {
+    public List<Faculty> getFilters() throws ServerException, ClientException {
         if (log.isDebugEnabled()){
             log.debug("Called get filters");
         }
@@ -352,4 +352,26 @@ public class Client implements ClientModel{
         return studentsList;
     }
 
+    public Integer addStudent( Integer groupID, String firstName, String lastName, String enrolled) throws ServerException, ClientException {
+        if (log.isDebugEnabled()){
+            log.debug("Called adding student");
+        }
+        sendMessage(createMessage("ADD_STUDENT", null, null, firstName, lastName, enrolled, null, null, groupID, null));
+        parsingAnswer(reading());
+        if ("Exception".equals(serverAnswer)) {
+            throw new ServerException(stackTrace);
+        }
+        return studentID;
+    }
+
+    public void removeStudent( Integer studentID) throws ServerException, ClientException {
+        if (log.isDebugEnabled()){
+            log.debug("Called adding student");
+        }
+        sendMessage(createMessage("REMOVE_STUDENT", null, null, null, null, null, studentID, null, null, null));
+        parsingAnswer(reading());
+        if ("Exception".equals(serverAnswer)) {
+            throw new ServerException(stackTrace);
+        }
+    }
  }

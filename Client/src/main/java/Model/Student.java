@@ -33,7 +33,6 @@ public class Student {
         // TODO Auto-generated constructor stub
     }
 
-
     /**
      * Gets the last name.
      *
@@ -124,55 +123,6 @@ public class Student {
         this.enrolled = string;
     }
 
-    /**
-     * Instantiates a new student.
-     *
-     * @param node the node
-     * @throws ClientException the ClientException
-     */
-    public Student (Node node) throws ClientException {
-        try{
-            student = (Element)node;
-            System.out.println("st "+ student.getAttribute("id"));
-            setId(Integer.parseInt(node.getAttributes().getNamedItem("id").getNodeValue()));
-            setFirstName(node.getAttributes().getNamedItem("firstName").getNodeValue());
-            setLastName(node.getAttributes().getNamedItem("lastName").getNodeValue());
-            setGroupNumber(node.getAttributes().getNamedItem("groupNumber").getNodeValue());
-            setEnrolled(node.getAttributes().getNamedItem("enrolled").getNodeValue());
-         } catch(NumberFormatException e){
-            throw new ClientException("Can not create a student! Something wrong with id!",e);
-        }
-    }
 
-    /**
-     * Creates the node.
-     *
-     * @param document the document
-     * @param group the group
-     */
-    public void createNode(Document document, Element group) {
-        Element studentNode = document.createElement("student");
-        studentNode.setAttribute("id", new Integer(getId()).toString());
-        studentNode.setAttribute("firstName", getFirstName());
-        studentNode.setAttribute("lastName", getLastName());
-        studentNode.setAttribute("groupNumber", getGroupNumber());
-        studentNode.setAttribute("enrolled", getEnrolled());
-        group.appendChild(studentNode);
-    }
 
-    /**
-     * Instantiates a new student.
-     *
-     * @param id the id
-     * @param firstName the first name
-     * @param lastName the last name
-     * @param groupNumber the group number
-     * @param enrolled the enrolled
-     */
-    public Student(int id, String firstName, String lastName, String groupNumber, String enrolled) {
-        setId(id);
-        setFirstName(firstName);
-        setLastName(lastName);
-        setGroupNumber(groupNumber);
-    }
 }

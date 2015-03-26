@@ -2,13 +2,9 @@ package View;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class LoginView extends JFrame {
 
-    public static String userName = "Anonymous";
-    public static String userPassword = "";
     private JLabel JL_UserName = new JLabel("Login:");
     private JTextField TF_UserName = new JTextField("");
     private JLabel JL_UserPassword = new JLabel("Password:");
@@ -22,7 +18,7 @@ public class LoginView extends JFrame {
     }
 
     private void BuildLoginView(){
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setSize(400,100);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -36,10 +32,6 @@ public class LoginView extends JFrame {
         addComponentToMainPanel(B_Ok, 1, 2, 1, 0, 10, 10, 30);
         add(P_Login);
         pack();
-    }
-
-    public static void main(String[] args)  {
-        LoginView view = new LoginView();
     }
 
     private void addComponentToMainPanel(JComponent comp, int x, int y, int col, int wx, int wy, int hx, int hy) {

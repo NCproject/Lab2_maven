@@ -7,8 +7,6 @@ import java.net.Socket;
 import Exception.*;
 
 public class SocketSingleton {
-    private static int serverPort = 8092;
-    private static String address = "127.0.0.1";
     private static Socket socket;
 
     private SocketSingleton() {
@@ -21,7 +19,9 @@ public class SocketSingleton {
     public static Socket getSocket() throws ClientException {
         if (socket==null) {
             try{
+                String address = "127.0.0.1";
                 InetAddress ipAddress = InetAddress.getByName(address);
+                int serverPort = 8092;
                 socket = new Socket(ipAddress, serverPort);
             } catch (IOException e) {
                 throw new ClientException("Something wrong with socket",e);
