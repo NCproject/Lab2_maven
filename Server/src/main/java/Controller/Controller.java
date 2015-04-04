@@ -99,7 +99,7 @@ public class Controller implements ActionListener {
     /**
      * Read pathes to xml and dtd files.
      *
-     * @throws ControllerException
+     * @throws ServerException
      * if can't read data from file
      */
     private static DB connectToDB() throws ServerException {

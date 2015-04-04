@@ -11,16 +11,16 @@ public class DB {
 	private static final Logger log = Logger.getLogger(Server.class);
 	
 	/** DB host */
-	private String host = "localhost";
+	private String host;
 	
 	/** database name */
-	private String dbName = "students";
+	private String dbName;
 	
 	/** DB login */
-	private String user = "root";
+	private String user;
 	
 	/** DB password */
-	private String password = "";
+	private String password;
 	
 	/** logger */
 	private Connection conn;
