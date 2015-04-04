@@ -30,99 +30,51 @@ public class Server implements ServerModel {
 			log.debug("Construktor call");
 	}
 
-	public boolean authorisation(String login, String password) throws ServerException {
-		try {
-			return db.authorisation(login, password);
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public boolean authorisation(String login, String password) throws SQLException {
+		return db.authorisation(login, password);
 	}
 	
-	public List<Faculty> getFilters() throws ServerException {
-		try {
-			return db.getAllFacultiesWithGroups();
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public List<Faculty> getFilters() throws SQLException {
+		return db.getAllFacultiesWithGroups();
 	}
 	
-	public List<Student> getStudentsByFilters(int facultyId, int groupId, String lastName) throws ServerException {
-		try {
-			return db.getStudentsByFilters(facultyId, groupId, lastName);
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public List<Student> getStudentsByFilters(int facultyId, int groupId, String lastName) throws SQLException {
+		return db.getStudentsByFilters(facultyId, groupId, lastName);
 	}
 
-	public int addFaculty(Faculty faculty) throws ServerException {
-		try {
-			return db.addFaculty(faculty);
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public void addFaculty(Faculty faculty) throws SQLException {
+		db.addFaculty(faculty);
 	}
 
-	public int addGroup(Group group) throws ServerException {
-		try {
-			return db.addGroup(group);
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public void addGroup(Group group) throws SQLException {
+		db.addGroup(group);
 	}
 
-	public int addStudent(Student student) throws ServerException {
-		try {
-			return db.addStudent(student);
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public void addStudent(Student student) throws SQLException {
+		db.addStudent(student);
 	}
 
-	public void changeFaculty(Faculty faculty) throws ServerException {
-		try {
-			db.changeFaculty(faculty);
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public void changeFaculty(Faculty faculty) throws SQLException {
+		db.changeFaculty(faculty);
 	}
 
-	public void changeGroup(Group group) throws ServerException {
-		try {
-			db.changeGroup(group);
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public void changeGroup(Group group) throws SQLException {
+		db.changeGroup(group);
 	}
 
-	public void changeStudent(Student student) throws ServerException {
-		try {
-			db.changeStudent(student);
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public void changeStudent(Student student) throws SQLException {
+		db.changeStudent(student);
 	}
 
-	public void removeFaculty(int id) throws ServerException {
-		try {
-			db.removeFaculty(id);
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public void removeFaculty(int id) throws SQLException {
+		db.removeFaculty(id);
 	}
 
-	public void removeGroup(int id) throws ServerException {
-		try {
-			db.removeGroup(id);
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public void removeGroup(int id) throws SQLException {
+		db.removeGroup(id);
 	}
 
-	public void removeStudent(int id) throws ServerException {
-		try {
-			db.removeStudent(id);
-		} catch (SQLException e) {
-			throw new ServerException((Exception) e);
-		}
+	public void removeStudent(int id) throws SQLException {
+		db.removeStudent(id);
 	}
 }

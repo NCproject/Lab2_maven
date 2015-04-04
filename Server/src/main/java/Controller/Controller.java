@@ -5,6 +5,10 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Properties;
 
 import Model.*;
 import Controller.ControllerException;
@@ -23,7 +27,7 @@ public class Controller implements ActionListener {
     private ServerModel server;
 
     /** port */
-    private int port = 8090;
+    private int port = 8094;
     
     /** threadController */
     private ThreadController threadController;
@@ -32,7 +36,6 @@ public class Controller implements ActionListener {
      * Instantiates a new controller.
      * 
      * @param server the server
-     * @param view the view
      */
     public Controller(ServerModel server) {
         if (log.isDebugEnabled())
@@ -46,18 +49,12 @@ public class Controller implements ActionListener {
             log.debug("Method call. Arguments: " + e.getActionCommand() + " "
                     + e.getSource());       
         try {
-        	if ("AddFaculty".equals(e.getActionCommand())){
-                int id = server.addFaculty((Faculty) e.getSource());
-            	this.threadController.setResultId(id);
-        	}
-            if ("AddGroup".equals(e.getActionCommand())){
-            	int id = server.addGroup((Group) e.getSource());
-            	this.threadController.setResultId(id);
-            }
-            if ("AddStudent".equals(e.getActionCommand())){
-            	int id = server.addStudent((Student) e.getSource());
-            	this.threadController.setResultId(id);
-            }
+        	if ("AddFaculty".equals(e.getActionCommand()))
+                server.addFaculty((Faculty) e.getSource());
+            if ("AddGroup".equals(e.getActionCommand()))
+            	server.addGroup((Group) e.getSource());
+            if ("AddStudent".equals(e.getActionCommand()))
+            	server.addStudent((Student) e.getSource());
             if ("ChangeFaculty".equals(e.getActionCommand()))
                 server.changeFaculty((Faculty) e.getSource());
             if ("ChangeGroup".equals(e.getActionCommand()))
@@ -70,7 +67,7 @@ public class Controller implements ActionListener {
                 server.removeGroup((int) e.getSource());
             if ("RemoveStudent".equals(e.getActionCommand()))
                 server.removeStudent((int) e.getSource());
-        } catch (ServerException ex) {
+        } catch (SQLException ex) {
             ControllerException e1 = new ControllerException(ex);
             log.error("Exception", e1);
             threadController.exceptionHandling(e1);
@@ -88,7 +85,7 @@ public class Controller implements ActionListener {
         try {
             ServerModel server = new Server();
             Controller controller = new Controller(server);
-            DB db = new DB();
+            DB db = connectToDB();
             db.connectToDB();
             server.setDb(db);                     
             controller.server = server;           
@@ -96,6 +93,43 @@ public class Controller implements ActionListener {
         } catch (ServerException ex) {
             ControllerException e = new ControllerException(ex);
             log.error("Exception", e);            
+        }
+    }
+
+    /**
+     * Read pathes to xml and dtd files.
+     *
+     * @throws ControllerException
+     * if can't read data from file
+     */
+    private static DB connectToDB() throws ServerException {
+        if (log.isDebugEnabled())
+            log.debug("Method call");
+        InputStream input = null;
+        Properties prop = new Properties();
+        try {
+            input = new FileInputStream("params.properties");
+            prop.load(input);
+            String host = prop.getProperty("host");
+            String user = prop.getProperty("user");
+            String password = prop.getProperty("password");
+            String dbName = prop.getProperty("dbName");
+            return new DB(host, dbName, user, password);
+        } catch (IOException e) {
+            ServerException ex = new ServerException(
+                    "Can't read the file with connection parameters.", e);
+            log.error("Exception", ex);
+            throw ex;
+        } finally {
+            try {
+                if (input != null)
+                    input.close();
+            } catch (IOException e) {
+                ServerException ex = new ServerException(
+                        "Problem with reading property file.", e);
+                log.error("Exception", ex);
+                throw ex;
+            }
         }
     }
 

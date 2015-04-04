@@ -1,5 +1,6 @@
 package Model;
 
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -14,7 +15,7 @@ public interface ServerModel {
 	 * @return boolean true if access is allow
 	 * @throws ServerException 
 	 */
-	public boolean authorisation(String login, String password) throws ServerException;
+	public boolean authorisation(String login, String password) throws SQLException;
 
 	/**
 	 * set the db
@@ -27,7 +28,7 @@ public interface ServerModel {
 	 * @return List<Faculty>
 	 * @throws ServerException 
 	 */
-	public List<Faculty> getFilters() throws ServerException;
+	public List<Faculty> getFilters() throws SQLException;
 	
 	/**
 	 * Return filters students
@@ -37,15 +38,15 @@ public interface ServerModel {
 	 * @return List<Student>
 	 * @throws ServerException 
 	 */
-	public List<Student> getStudentsByFilters(int facultyId, int groupId, String lastName) throws ServerException;
+	public List<Student> getStudentsByFilters(int facultyId, int groupId, String lastName) throws SQLException;
 
-	public int addFaculty(Faculty faculty) throws ServerException;
-	public int addGroup(Group group) throws ServerException;
-	public int addStudent(Student student) throws ServerException;
-	public void changeFaculty(Faculty faculty) throws ServerException;
-	public void changeGroup(Group group) throws ServerException;
-	public void changeStudent(Student student) throws ServerException;
-	public void removeFaculty(int id) throws ServerException;
-	public void removeGroup(int id) throws ServerException;
-	public void removeStudent(int id) throws ServerException;
+	public void addFaculty(Faculty faculty) throws SQLException;
+	public void addGroup(Group group) throws SQLException;
+	public void addStudent(Student student) throws SQLException;
+	public void changeFaculty(Faculty faculty) throws SQLException;
+	public void changeGroup(Group group) throws SQLException;
+	public void changeStudent(Student student) throws SQLException;
+	public void removeFaculty(int id) throws SQLException;
+	public void removeGroup(int id) throws SQLException;
+	public void removeStudent(int id) throws SQLException;
 }

@@ -24,7 +24,14 @@ public class DB {
 	
 	/** logger */
 	private Connection conn;
-	
+
+	public DB(String host, String dbName, String user, String password){
+		this.host = host;
+		this.dbName = dbName;
+		this.user = user;
+		this.password = password;
+	}
+
 	/**
 	 * Create connection to mySQL DB 
 	 */
@@ -36,7 +43,8 @@ public class DB {
 			conn = DriverManager.getConnection("jdbc:mysql://" + host + "/" + dbName, user, password);
 		} catch (SQLException e) {
 			e.printStackTrace();
-			log.error("Exception", e);        
+			log.error("Exception", e);
+			System.exit(0);
 		}
 	}
 	
