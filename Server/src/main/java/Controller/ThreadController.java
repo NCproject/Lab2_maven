@@ -23,7 +23,6 @@ public class ThreadController extends Thread {
     private static final Logger log = Logger.getLogger(ThreadController.class);
     private String xmlMessage;
     private String exceptMessage = null;
-    private int resultId = 0;
         
     /**
      * Set model
@@ -165,32 +164,32 @@ public class ThreadController extends Thread {
             if ("REMOVE_STUDENT".equals(action)) {
             	int id = Integer.parseInt(xPath.evaluate("//id", xBody));
                 runAction(id, "RemoveStudent");
-                out.writeUTF(resultMessage(0,action));
+                out.writeUTF(resultMessage(action));
             }
             
             if ("REMOVE_GROUP".equals(action)) {
             	int id = Integer.parseInt(xPath.evaluate("//id", xBody));
                 runAction(id, "RemoveGroup");
-                out.writeUTF(resultMessage(0,action));
+                out.writeUTF(resultMessage(action));
             }
             
             if ("REMOVE_FACULTY".equals(action)) {
             	int id = Integer.parseInt(xPath.evaluate("//id", xBody));
                 runAction(id, "RemoveFaculty");
-                out.writeUTF(resultMessage(0,action));
+                out.writeUTF(resultMessage(action));
             }
             
             if ("ADD_GROUP".equals(action)) {
             	int facultyId = Integer.parseInt(xPath.evaluate("//faculty", xBody));
             	String number = xPath.evaluate("//number", xBody);
                 runAction(new Group(facultyId, number), "AddGroup");
-                out.writeUTF(resultMessage(resultId, action));
+                out.writeUTF(resultMessage(action));
             }
             
             if ("ADD_FACULTY".equals(action)) {
             	String name = xPath.evaluate("//name", xBody);
                 runAction(new Faculty(name), "AddFaculty");
-                out.writeUTF(resultMessage(resultId, action));
+                out.writeUTF(resultMessage(action));
             }
             
             if ("ADD_STUDENT".equals(action)) {
@@ -199,21 +198,21 @@ public class ThreadController extends Thread {
             	String lastName = xPath.evaluate("//studentLastname", xBody);
             	String enrolled = xPath.evaluate("//enrolledDate", xBody);
                 runAction(new Student(groupId, firstName, lastName, enrolled), "AddStudent");
-                out.writeUTF(resultMessage(resultId, action));
+                out.writeUTF(resultMessage(action));
             }
             
             if ("CHANGE_GROUP".equals(action)) {
             	int groupId = Integer.parseInt(xPath.evaluate("//id", xBody));
             	String number = xPath.evaluate("//number", xBody);
                 runAction(new Group(number, groupId), "ChangeGroup");
-                out.writeUTF(resultMessage(0, action));
+                out.writeUTF(resultMessage(action));
             }
             
             if ("CHANGE_FACULTY".equals(action)) {
             	int facultyId = Integer.parseInt(xPath.evaluate("//id", xBody));
             	String name = xPath.evaluate("//name", xBody);
                 runAction(new Faculty(name, facultyId), "ChangeFaculty");
-                out.writeUTF(resultMessage(0, action));
+                out.writeUTF(resultMessage(action));
             }
             
             if ("CHANGE_STUDENT".equals(action)) {
@@ -222,7 +221,7 @@ public class ThreadController extends Thread {
             	String lastName = xPath.evaluate("//studentLastname", xBody);
             	String enrolled = xPath.evaluate("//enrolledDate", xBody);
                 runAction(new Student(firstName, lastName, enrolled, id), "ChangeStudent");
-                out.writeUTF(resultMessage(0, action));
+                out.writeUTF(resultMessage(action));
             }
         } catch (Exception e) {
             log.error("Exception", e);
@@ -237,7 +236,7 @@ public class ThreadController extends Thread {
     /**
      * Creating request according to result
      */
-    private String resultMessage(int id, String action) {
+    private String resultMessage(String action) {
     	if (log.isDebugEnabled())
             log.debug("Method call");
         StringBuilder builder = new StringBuilder();
@@ -253,12 +252,6 @@ public class ThreadController extends Thread {
         builder.append("<status>");
         builder.append(result);
         builder.append("</status>");
-        if (id != 0) {
-        	builder.append("<id>");
-            builder.append(id);
-            builder.append("</id>");
-            resultId = 0;
-        }
         if (exceptMessage != null) {
             builder.append("<stackTrace>");
             builder.append(exceptMessage);           
@@ -382,9 +375,5 @@ public class ThreadController extends Thread {
             log.debug("Method call " + command + " " + source);
         ActionEvent event = new ActionEvent(source, 0, command);
         controller.actionPerformed(event);
-    }
-    
-    public void setResultId(int id) {
-    	this.resultId = id;
     }
 }
