@@ -6,6 +6,9 @@ import java.io.*;
 
 import javax.xml.parsers.*;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
@@ -40,10 +43,30 @@ public class Client implements ClientModel{
 
     private String access;
 
+    private Element messageText;
+    private Element body;
+    private Document document;
+    public boolean connection;
+    private String message;
+    private String result;
+    private DataOutputStream out;
 
     public Client(){
-
+       // start();
     }
+/*
+    @Override
+    public void run() {
+        try {
+            connection = true;
+            while(connection) {
+                sendMessage(message);
+                reading();
+            }
+        } catch (Exception exc) {
+            exc.printStackTrace();
+        }
+    }*/
     /**
      * Send message to server
      */
@@ -52,33 +75,91 @@ public class Client implements ClientModel{
             log.debug("Called send message");
         }
         try {
-            DataOutputStream out = new DataOutputStream(SocketSingleton.getSocket().getOutputStream());
+            out = new DataOutputStream(SocketSingleton.getSocket().getOutputStream());
             out.writeUTF(message);
         } catch (IOException e) {
             throw new ClientException(e);
+        }finally {
+            if (!(out == null)) {
+                try {
+                    out.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
+
+    private void createAction(String ACTION){
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            document = db.newDocument();
+            messageText = document.createElement("envelope");
+            Element header = document.createElement("header");
+            messageText.appendChild(header);
+            Element action = document.createElement("action");
+            action.setTextContent(ACTION);
+            header.appendChild(action);
+            body = document.createElement("body");
+            messageText.appendChild(body);
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static String nodeToString(Node node) {
+        StringWriter sw = new StringWriter();
+        try {
+            Transformer t = TransformerFactory.newInstance().newTransformer();
+            t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            t.setOutputProperty(OutputKeys.INDENT, "yes");
+            t.transform(new DOMSource(node), new StreamResult(sw));
+        } catch (TransformerException te) {
+            System.out.println("nodeToString Transformer Exception");
+        }
+        return sw.toString();
+    }
+
+
+   private Element singTag(String login, String password){
+       Element loginTag = document.createElement("login");
+       loginTag.setTextContent(login);
+       body.appendChild(loginTag);
+       Element passwordTag = document.createElement("password");
+       passwordTag.setTextContent(password);
+       return passwordTag;
+   }
 
     /**
      * Create new message according to ACTION
      */
-    public String authorisationMessage(String ACTION, String login, String password){
-        StringBuilder message = new StringBuilder();
-        message.append("<envelope><header><action>");
-        message.append(ACTION);
-        message.append("</action>");
-        if ("SIGN".equals(ACTION)){
-
-            message.append("</header><body>");
-            message.append("<login>");
-            message.append(login);
-            message.append("</login>");
-            message.append("<password>");
-            message.append(password);
-            message.append("</password>");
+    public String authorisationMessage(String login, String password){
+        if (log.isDebugEnabled()){
+            log.debug("Creating SOAP message called");
         }
-        message.append("</body></envelope>");
-        return message.toString();
+        createAction("SIGN");
+        body.appendChild(singTag(login, password));
+        return nodeToString(messageText);
+    }
+
+
+    public String filtersMessage(){
+        if (log.isDebugEnabled()){
+            log.debug("Creating SOAP message called");
+        }
+        createAction("SHOW_FILTERS");
+        return nodeToString(messageText);
+    }
+
+    public String facultyUpdateMessage(String ACTION, Faculty faculty){
+        createAction(ACTION);
+        Element facultyNode = faculty.createNode(document);
+        body.appendChild(facultyNode);
+        return nodeToString(messageText);
     }
 
     /**
@@ -115,9 +196,9 @@ public class Client implements ClientModel{
 
         if ("ADD_GROUP".equals(ACTION)) {
             message.append("</header><body>");
-            message.append("<facultyID>");
+            message.append("<faculty>");
             message.append(facultyID);
-            message.append("</facultyID>");
+            message.append("</faculty>");
             message.append("<number>");
             message.append(group);
             message.append("</number>");
@@ -231,21 +312,22 @@ public class Client implements ClientModel{
                     Element g = (Element) xFaculties.item(i);
                     faculty.setId(Integer.parseInt(g.getFirstChild().getTextContent()));
                     faculty.setName(xPath.evaluate("name", g));
-                    NodeList fh = g.getElementsByTagName("group");
-                    Group gh = new Group();
-                    for (int u = 0; u < fh.getLength(); u++) {
-                        Element studentElement = (Element) fh.item(u);
+                    NodeList groups = g.getElementsByTagName("group");
+
+                    for (int u = 0; u < groups.getLength(); u++) {
+                        Group group = new Group();
+                        Element studentElement = (Element) groups.item(u);
                         Integer groupId = Integer.parseInt(studentElement.getFirstChild().getTextContent());
-                        gh.setID(groupId);
-                        gh.setNumber(xPath.evaluate("number", studentElement));
-                        faculty.addGroup(gh);
+                        group.setID(groupId);
+                        group.setNumber(xPath.evaluate("number", studentElement));
+                        faculty.addGroup(group);
                     }
                     this.facultiesList.add(faculty);
                 }
             } else  if ("SIGN".equals(action)){
                 this.access = xPath.evaluate("//access", xBody);
             } else  if ("ADD_Group".equals(action)){
-                this.access = xPath.evaluate("//id", xBody);
+                this.result = xPath.evaluate("//id", xBody);
             }else  if ("SEARCH_STUDENTS".equals(action)){
                 XPathExpression expr3 = xPath.compile("//students/*");
                 NodeList xStudents = (NodeList) expr3.evaluate(doc, XPathConstants.NODESET);
@@ -257,7 +339,16 @@ public class Client implements ClientModel{
                     student.setLastName(xPath.evaluate("lastName", g));
                     student.setEnrolled(xPath.evaluate("enrolledDate", g));
                     this.studentsList.add(student);
-            }}
+                }
+            }else
+                if ("ADD_FACULTY".equals(action) || "CHANGE_FACULTY".equals(action) || "REMOVE_FACULTY".equals(action) ||
+                        "ADD_STUDENT".equals(action) || "CHANGE_STUDENT".equals(action) || "REMOVE_STUDENT".equals(action) ||
+                        "ADD_GROUP".equals(action) || "CHANGE_GROUP".equals(action) || "REMOVE_GROUP".equals(action)){
+                    this.access = xPath.evaluate("//status", xBody);
+                    if (access.equals("Exception")){
+                        stackTrace = xPath.evaluate("//stackTrace", xBody);
+                    }
+                  }
             else {
                 serverAnswer = action;
                 if ("Exception".equals(action)) {
@@ -275,7 +366,7 @@ public class Client implements ClientModel{
         if (log.isDebugEnabled()){
             log.debug("Called get update");
         }
-        sendMessage(authorisationMessage("SIGN", login, password));
+        sendMessage(authorisationMessage(login, password));
         parsingAnswer(reading());
         return access;
     }
@@ -284,7 +375,8 @@ public class Client implements ClientModel{
         if (log.isDebugEnabled()){
             log.debug("Called get filters");
         }
-        sendMessage(createMessage("SHOW_FILTERS", null, null, null, null, null, null, null, null, null));
+        sendMessage(filtersMessage());
+        //sendMessage(createMessage("SHOW_FILTERS", null, null, null, null, null, null, null, null, null));
         parsingAnswer(reading());
         return facultiesList;
     }
@@ -315,16 +407,17 @@ public class Client implements ClientModel{
     }
 
 
-    public Integer addFaculty( String faculty) throws ServerException, ClientException {
+    public String addFaculty(Faculty faculty) throws ServerException, ClientException {
         if (log.isDebugEnabled()){
             log.debug("Called adding student");
         }
-        sendMessage(createMessage("ADD_FACULTY", faculty, null, null, null, null, null, null, null, null));
+      // sendMessage(createMessage("ADD_FACULTY", faculty, null, null, null, null, null, null, null, null));
+        sendMessage(facultyUpdateMessage("ADD_FACULTY", faculty));
         parsingAnswer(reading());
         if ("Exception".equals(serverAnswer)) {
             throw new ServerException(stackTrace);
         }
-        return facultyID;
+        return result;
     }
 
 

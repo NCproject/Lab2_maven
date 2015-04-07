@@ -9,14 +9,17 @@ import View.MainView;
 import Exception.*;
 import Model.*;
 import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
 
 import javax.swing.*;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClientController {
+public class ClientController extends Thread {
     private MainView view;
     private LoginView loginView;
     private Client client;
@@ -24,14 +27,17 @@ public class ClientController {
     private List<Faculty> faculties;
     private List<Student> students = new ArrayList<>();
     private Integer groupID;
-    private Integer facultyID;
+    private String result;
     private Integer studentID;
+    private Integer facultyID;
     private static final Logger logger = Logger.getLogger(ClientController.class);
 
     public ClientController(Client client, final MainView view ) {
         this.client = client;
         this.view = view;
         getFilters();
+
+
 
         view.getButtonSignIn().addActionListener(new ActionListener() {
             @Override
@@ -179,19 +185,21 @@ public class ClientController {
 
     }
 
-    private Integer addFaculty(){
+    private String addFaculty(){
         if (logger.isDebugEnabled()){
             logger.debug("Called method to get data from server");
         }
         try{
             if (!view.getNew().equals("")){
-                facultyID = client.addFaculty(view.getNew());
+                Faculty faculty = new Faculty();
+                faculty.setName(view.getNew());
+                result = client.addFaculty(faculty);
             }
         }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
             view.getLoginView().showMessage("Can't update data from server!");
         }
-        return facultyID;
+        return result;
 
     }
 
@@ -202,7 +210,7 @@ public class ClientController {
         try{
             if (!view.getJCB_Faculty().getSelectedItem().equals(null)){
                 Faculty temp = (Faculty) view.getJCB_Faculty().getSelectedItem();
-                facultyID = client.deleteFaculty(temp.getId());
+               facultyID = client.deleteFaculty(temp.getId());
             }
         }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);

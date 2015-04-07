@@ -29,6 +29,9 @@ public class Student {
     /** The enrolled. */
     private String enrolled;
 
+    /** The st. */
+    private Element st;
+
     public Student(){
         // TODO Auto-generated constructor stub
     }
@@ -124,5 +127,40 @@ public class Student {
     }
 
 
+    /**
+     * Instantiates a new student.
+     *
+     * @param node the node
+     * @throws ClientException the ClientException
+     */
+    public Student (Node node) throws ClientException {
+        try{
+            st = (Element)node;
+            System.out.println("st "+ st.getAttribute("id"));
+            setId(Integer.parseInt(node.getAttributes().getNamedItem("id").getNodeValue()));
+            setFirstName(node.getAttributes().getNamedItem("firstname").getNodeValue());
+            setLastName(node.getAttributes().getNamedItem("lastname").getNodeValue());
+            setGroupNumber(node.getAttributes().getNamedItem("groupnumber").getNodeValue());
+            setEnrolled(node.getAttributes().getNamedItem("enrolled").getNodeValue());
+        } catch(NumberFormatException e){
+            throw new ClientException("Can not create a student! Something wrong with id!",e);
+        }
+    }
+
+    /**
+     * Creates the node.
+     *
+     * @param document the document
+     * @param group the group
+     */
+    public void createNode(Document document, Element group) {
+        Element studentNode = document.createElement("student");
+        studentNode.setAttribute("id", new Integer(getId()).toString());
+        studentNode.setAttribute("firstName", getFirstName());
+        studentNode.setAttribute("lastName", getLastName());
+        studentNode.setAttribute("groupNumber", getGroupNumber());
+        studentNode.setAttribute("enrolled", getEnrolled());
+        group.appendChild(studentNode);
+    }
 
 }

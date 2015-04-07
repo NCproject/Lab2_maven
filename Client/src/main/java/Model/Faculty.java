@@ -1,6 +1,7 @@
 package Model;
 
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -15,7 +16,7 @@ public class Faculty {
     private String name;
 
     /** The faculty. */
-    private Element faculty;
+    private Element facultyNode;
 
     private int id;
 
@@ -24,6 +25,8 @@ public class Faculty {
     public Faculty() {
         // TODO Auto-generated constructor stub
     }
+
+
 
     /**
      * Adds the group.
@@ -75,5 +78,16 @@ public class Faculty {
 
     public String toString(){
         return name;
+    }
+
+    /**
+     * Creates the node.
+     *
+     * @param document the document
+     */
+    public Element createNode(Document document) {
+        facultyNode = document.createElement("name");
+        facultyNode.setTextContent(getName());
+        return facultyNode;
     }
 }

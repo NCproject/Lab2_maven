@@ -60,6 +60,7 @@ public class MainView extends JFrame implements ClientView {
     }
 
     private void BuildMainView(){
+
         setSize(800, 800);
         setLocation(500,150);
         setResizable(false);

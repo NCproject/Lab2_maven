@@ -21,7 +21,7 @@ public class SocketSingleton {
             try{
                 String address = "127.0.0.1";
                 InetAddress ipAddress = InetAddress.getByName(address);
-                int serverPort = 8092;
+                int serverPort = 8090;
                 socket = new Socket(ipAddress, serverPort);
             } catch (IOException e) {
                 throw new ClientException("Something wrong with socket",e);
