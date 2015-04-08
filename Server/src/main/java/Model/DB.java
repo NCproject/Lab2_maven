@@ -10,7 +10,7 @@ public class DB {
     /**
      * logger
      */
-    private static final Logger log = Logger.getLogger(Server.class);
+    private static final Logger log = Logger.getLogger(DB.class);
 
     /**
      * DB host
@@ -242,6 +242,7 @@ public class DB {
         st.setString(2, student.getFirstName());
         st.setString(3, student.getLastName());
         st.setString(4, student.getEnrolled());
+        st.execute();
     }
 
     /**
