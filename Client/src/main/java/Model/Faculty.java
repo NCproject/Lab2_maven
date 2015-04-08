@@ -3,9 +3,6 @@ package Model;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import Exception.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,17 +12,13 @@ public class Faculty {
     /** The name. */
     private String name;
 
-    /** The faculty. */
-    private Element facultyNode;
-
     private int id;
 
-    private ArrayList<Group> groups = new ArrayList<Group>();
+    private ArrayList<Group> groups = new ArrayList<>();
 
     public Faculty() {
         // TODO Auto-generated constructor stub
     }
-
 
 
     /**
@@ -37,8 +30,6 @@ public class Faculty {
         groups.add(group);
     }
 
-
-
     public void setId(Integer id){
         this.id = id;
     }
@@ -46,6 +37,7 @@ public class Faculty {
     public Integer getId(){
         return id;
     }
+
     /**
      * Gets the name.
      *
@@ -68,7 +60,6 @@ public class Faculty {
      * Gets the groups.
      *
      * @return the groups
-     * @throws Exception the exception
      */
     public List<Group> getGroups() {
 
@@ -85,9 +76,10 @@ public class Faculty {
      *
      * @param document the document
      */
-    public Element createNode(Document document) {
-        facultyNode = document.createElement("name");
+    public void createNode(Document document, Element body) {
+        /* The faculty. */
+        Element facultyNode = document.createElement("name");
         facultyNode.setTextContent(getName());
-        return facultyNode;
+        body.appendChild(facultyNode);
     }
 }

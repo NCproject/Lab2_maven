@@ -28,8 +28,6 @@ import Exception.*;
 public class Client implements ClientModel{
     /** The logger. */
     private static final Logger log = Logger.getLogger(Client.class);
-    private String serverAnswer;
-    private String stackTrace;
 
     /** List of faculties. */
     private List<Faculty> facultiesList;
@@ -37,36 +35,15 @@ public class Client implements ClientModel{
     /** List of students. */
     private List<Student> studentsList;
 
-    private Integer groupID;
-    private Integer facultyID;
-    private Integer studentID;
-
     private String access;
-
     private Element messageText;
     private Element body;
     private Document document;
-    public boolean connection;
-    private String message;
-    private String result;
     private DataOutputStream out;
 
     public Client(){
-       // start();
     }
-/*
-    @Override
-    public void run() {
-        try {
-            connection = true;
-            while(connection) {
-                sendMessage(message);
-                reading();
-            }
-        } catch (Exception exc) {
-            exc.printStackTrace();
-        }
-    }*/
+
     /**
      * Send message to server
      */
@@ -125,40 +102,17 @@ public class Client implements ClientModel{
     }
 
 
-   private Element singTag(String login, String password){
-       Element loginTag = document.createElement("login");
-       loginTag.setTextContent(login);
-       body.appendChild(loginTag);
-       Element passwordTag = document.createElement("password");
-       passwordTag.setTextContent(password);
-       return passwordTag;
-   }
-
-    /**
-     * Create new message according to ACTION
-     */
     public String authorisationMessage(String login, String password){
         if (log.isDebugEnabled()){
             log.debug("Creating SOAP message called");
         }
         createAction("SIGN");
-        body.appendChild(singTag(login, password));
-        return nodeToString(messageText);
-    }
-
-
-    public String filtersMessage(){
-        if (log.isDebugEnabled()){
-            log.debug("Creating SOAP message called");
-        }
-        createAction("SHOW_FILTERS");
-        return nodeToString(messageText);
-    }
-
-    public String facultyUpdateMessage(String ACTION, Faculty faculty){
-        createAction(ACTION);
-        Element facultyNode = faculty.createNode(document);
-        body.appendChild(facultyNode);
+        Element loginTag = document.createElement("login");
+        loginTag.setTextContent(login);
+        body.appendChild(loginTag);
+        Element passwordTag = document.createElement("password");
+        passwordTag.setTextContent(password);
+        body.appendChild(passwordTag);
         return nodeToString(messageText);
     }
 
@@ -166,7 +120,7 @@ public class Client implements ClientModel{
      * Create new message according to ACTION
      */
     public String createMessage(String ACTION, String faculty, String group,
-                                 String firstName, String lastName, String  enrolledDate, Integer studentID, Integer facultyID, Integer groupID, String searchText) {
+                                String firstName, String lastName, String  enrolledDate, Integer studentID, Integer facultyID, Integer groupID, String searchText) {
         if (log.isDebugEnabled()){
             log.debug("Creating SOAP message called");
         }
@@ -176,34 +130,6 @@ public class Client implements ClientModel{
         message.append(ACTION);
         message.append("</action>");
 
-        if ("SHOW_FILTERS".equals(ACTION)) {
-            message.append("</header><body>");
-        }
-
-        if ("ADD_FACULTY".equals(ACTION)  || "CHANGEFaculty".equals(ACTION)) {
-            message.append("</header><body>");
-            message.append("<name>");
-            message.append(faculty);
-            message.append("</name>");
-        }
-
-        if ("REMOVE_FACULTY".equals(ACTION)) {
-            message.append("</header><body>");
-            message.append("<id>");
-            message.append(facultyID);
-            message.append("</id>");
-        }
-
-        if ("ADD_GROUP".equals(ACTION)) {
-            message.append("</header><body>");
-            message.append("<faculty>");
-            message.append(facultyID);
-            message.append("</faculty>");
-            message.append("<number>");
-            message.append(group);
-            message.append("</number>");
-        }
-
         if ("CHANGEGroup".equals(ACTION)) {
             message.append("<groupID>");
             message.append(groupID);
@@ -212,49 +138,6 @@ public class Client implements ClientModel{
             message.append("<groupName>");
             message.append(group);
             message.append("</groupName>");
-        }
-
-        if ("REMOVE_GROUP".equals(ACTION)) {
-            message.append("</header><body>");
-            message.append("<id>");
-            message.append(groupID);
-            message.append("</id>");
-        }
-
-        if ("SEARCH_STUDENTS".equals(ACTION)) {
-            message.append("</header><body>");
-            message.append("<faculty>");
-            message.append(facultyID);
-            message.append("</faculty>");
-            message.append("<group>");
-            message.append(groupID);
-            message.append("</group>");
-            message.append("<searchText>");
-            message.append(searchText);
-            message.append("</searchText>");
-        }
-
-        if ("ADD_STUDENT".equals(ACTION)){
-            message.append("</header><body>");
-            message.append("<group>");
-            message.append(groupID);
-            message.append("</group>");
-            message.append("<studentName>");
-            message.append(firstName);
-            message.append("</studentName>");
-            message.append("<studentLastname>");
-            message.append(lastName);
-            message.append("</studentLastname>");
-            message.append("<enrolledDate>");
-            message.append(enrolledDate);
-            message.append("</enrolledDate>");
-        }
-
-        if ("REMOVE_STUDENT".equals(ACTION)){
-            message.append("</header><body>");
-            message.append("<id>");
-            message.append(studentID);
-            message.append("</id>");
         }
 
         message.append("</body></envelope>");
@@ -304,7 +187,6 @@ public class Client implements ClientModel{
             if ("SHOW_FILTERS".equals(action)) {
                 facultiesList = new ArrayList<>();
                 studentsList = new ArrayList<>();
-                //evaluate строка compile узел
                 XPathExpression expr2 = xPath.compile("//faculties/*");
                 NodeList xFaculties = (NodeList) expr2.evaluate(doc, XPathConstants.NODESET);
                 for (int i = 0; i < xFaculties.getLength(); i++) {
@@ -326,9 +208,7 @@ public class Client implements ClientModel{
                 }
             } else  if ("SIGN".equals(action)){
                 this.access = xPath.evaluate("//access", xBody);
-            } else  if ("ADD_Group".equals(action)){
-                this.result = xPath.evaluate("//id", xBody);
-            }else  if ("SEARCH_STUDENTS".equals(action)){
+            } else  if ("SEARCH_STUDENTS".equals(action)){
                 XPathExpression expr3 = xPath.compile("//students/*");
                 NodeList xStudents = (NodeList) expr3.evaluate(doc, XPathConstants.NODESET);
                 for (int i = 0; i < xStudents.getLength(); i++) {
@@ -341,28 +221,21 @@ public class Client implements ClientModel{
                     this.studentsList.add(student);
                 }
             }else
-                if ("ADD_FACULTY".equals(action) || "CHANGE_FACULTY".equals(action) || "REMOVE_FACULTY".equals(action) ||
-                        "ADD_STUDENT".equals(action) || "CHANGE_STUDENT".equals(action) || "REMOVE_STUDENT".equals(action) ||
-                        "ADD_GROUP".equals(action) || "CHANGE_GROUP".equals(action) || "REMOVE_GROUP".equals(action)){
-                    this.access = xPath.evaluate("//status", xBody);
-                    if (access.equals("Exception")){
-                        stackTrace = xPath.evaluate("//stackTrace", xBody);
-                    }
-                  }
-            else {
-                serverAnswer = action;
-                if ("Exception".equals(action)) {
-                    NodeList xException = (NodeList) xPath.evaluate("//envelope/body", is, XPathConstants.NODESET);
-                    stackTrace = xPath.evaluate("//stackTrace", xException);
-                }}
 
-        }catch(XPathExpressionException | IOException | ParserConfigurationException | SAXException e){
+                this.access = xPath.evaluate("//status", xBody);
+                if (access.equals("Exception")){
+                    String stackTrace = xPath.evaluate("//stackTrace", xBody);
+                    log.error(stackTrace);
+                    throw new ServerException(stackTrace);
+                }
+
+
+        } catch(XPathExpressionException | IOException | ParserConfigurationException | SAXException e){
             throw new ServerException(e);
         }
     }
 
-
-    public String getSign(String login, String password) throws ServerException,ClientException {
+    public String getAccess(String login, String password) throws ServerException,ClientException {
         if (log.isDebugEnabled()){
             log.debug("Called get update");
         }
@@ -371,100 +244,110 @@ public class Client implements ClientModel{
         return access;
     }
 
+
     public List<Faculty> getFilters() throws ServerException, ClientException {
         if (log.isDebugEnabled()){
             log.debug("Called get filters");
         }
-        sendMessage(filtersMessage());
-        //sendMessage(createMessage("SHOW_FILTERS", null, null, null, null, null, null, null, null, null));
+        createAction("SHOW_FILTERS");
+        sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
         return facultiesList;
     }
 
-
-    public Integer addGroup( Integer facultyID, String group) throws ServerException, ClientException {
+    public void addGroup( Group group) throws ServerException, ClientException {
         if (log.isDebugEnabled()){
-            log.debug("Called adding student");
+            log.debug("Called adding group");
         }
-        sendMessage(createMessage("ADD_GROUP", null, group, null, null, null, null, facultyID, null, null));
+        createAction("ADD_GROUP");
+        group.createNode(document, body);
+        sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
-        if ("Exception".equals(serverAnswer)) {
-            throw new ServerException(stackTrace);
-        }
-        return groupID;
     }
 
-    public Integer removeGroup( Integer groupID) throws ServerException, ClientException {
+    public void removeGroup( Integer groupID) throws ServerException, ClientException {
         if (log.isDebugEnabled()){
-            log.debug("Called adding student");
+            log.debug("Called removing group");
         }
-        sendMessage(createMessage("REMOVE_GROUP", null, null, null, null, null, null, null, groupID, null));
+        createAction("REMOVE_GROUP");
+        Element nodeId = document.createElement("id");
+        nodeId.setTextContent(Integer.toString(groupID));
+        body.appendChild(nodeId);
+        sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
-        if ("Exception".equals(serverAnswer)) {
-            throw new ServerException(stackTrace);
-        }
-        return groupID;
     }
 
-
-    public String addFaculty(Faculty faculty) throws ServerException, ClientException {
+    public void addFaculty(Faculty faculty) throws ServerException, ClientException {
         if (log.isDebugEnabled()){
-            log.debug("Called adding student");
+            log.debug("Called adding faculty");
         }
-      // sendMessage(createMessage("ADD_FACULTY", faculty, null, null, null, null, null, null, null, null));
-        sendMessage(facultyUpdateMessage("ADD_FACULTY", faculty));
+        createAction("ADD_FACULTY");
+        faculty.createNode(document, body);
+        sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
-        if ("Exception".equals(serverAnswer)) {
-            throw new ServerException(stackTrace);
-        }
-        return result;
     }
 
-
-    public Integer deleteFaculty( Integer facultyID) throws ServerException, ClientException {
+    public void removeFaculty( Integer facultyID) throws ServerException, ClientException {
         if (log.isDebugEnabled()){
-            log.debug("Called adding student");
+            log.debug("Called removing faculty");
         }
-        sendMessage(createMessage("REMOVE_FACULTY", null, null, null, null, null,null, facultyID, null, null));
+        createAction("REMOVE_FACULTY");
+        Element nodeId = document.createElement("id");
+        nodeId.setTextContent(Integer.toString(facultyID));
+        body.appendChild(nodeId);
+        sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
-        if ("Exception".equals(serverAnswer)) {
-            throw new ServerException(stackTrace);
-        }
-        return groupID;
     }
 
     public List<Student> showStudents( Integer facultyID, Integer groupID, String searchText) throws ServerException, ClientException {
         if (log.isDebugEnabled()){
             log.debug("Called adding student");
         }
-        sendMessage(createMessage("SEARCH_STUDENTS", null, null, null, null, null,null, facultyID, groupID, searchText));
+        createAction("SEARCH_STUDENTS");
+        Element nodeFaculty = document.createElement("faculty");
+        nodeFaculty.setTextContent(Integer.toString(facultyID));
+        body.appendChild(nodeFaculty);
+        Element nodeGroup = document.createElement("group");
+        nodeGroup.setTextContent(Integer.toString(groupID));
+        body.appendChild(nodeGroup);
+        Element nodeSearchText = document.createElement("searchText");
+        nodeSearchText.setTextContent(searchText);
+        body.appendChild(nodeSearchText);
+        sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
-        if ("Exception".equals(serverAnswer)) {
-            throw new ServerException(stackTrace);
-        }
         return studentsList;
     }
 
-    public Integer addStudent( Integer groupID, String firstName, String lastName, String enrolled) throws ServerException, ClientException {
+    public void addStudent(Student student) throws ServerException, ClientException {
         if (log.isDebugEnabled()){
             log.debug("Called adding student");
         }
-        sendMessage(createMessage("ADD_STUDENT", null, null, firstName, lastName, enrolled, null, null, groupID, null));
+        createAction("ADD_STUDENT");
+        student.createNode(document, body);
+        sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
-        if ("Exception".equals(serverAnswer)) {
-            throw new ServerException(stackTrace);
+    }
+
+    public void changeStudent(Student student) throws ServerException, ClientException {
+        if (log.isDebugEnabled()){
+            log.debug("Called changing student");
         }
-        return studentID;
+        createAction("CHANGE_STUDENT");
+        student.createNodeId(document, body);
+        student.createNode(document, body);
+        sendMessage(nodeToString(messageText));
+        parsingAnswer(reading());
     }
 
     public void removeStudent( Integer studentID) throws ServerException, ClientException {
         if (log.isDebugEnabled()){
-            log.debug("Called adding student");
+            log.debug("Called removing student");
         }
-        sendMessage(createMessage("REMOVE_STUDENT", null, null, null, null, null, studentID, null, null, null));
+        createAction("REMOVE_STUDENT");
+        Element nodeId = document.createElement("id");
+        nodeId.setTextContent(Integer.toString(studentID));
+        body.appendChild(nodeId);
+        sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
-        if ("Exception".equals(serverAnswer)) {
-            throw new ServerException(stackTrace);
-        }
     }
- }
+}

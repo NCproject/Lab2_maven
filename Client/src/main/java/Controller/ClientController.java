@@ -1,71 +1,31 @@
 package Controller;
 
-import Model.Client;
-import Model.Faculty;
-import Model.Group;
-import View.LoginView;
 import View.MainView;
-
 import Exception.*;
 import Model.*;
 import org.apache.log4j.Logger;
-import org.w3c.dom.Document;
 
 import javax.swing.*;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClientController extends Thread {
     private MainView view;
-    private LoginView loginView;
     private Client client;
-    private String access;
+
     private List<Faculty> faculties;
     private List<Student> students = new ArrayList<>();
-    private Integer groupID;
-    private String result;
-    private Integer studentID;
-    private Integer facultyID;
     private static final Logger logger = Logger.getLogger(ClientController.class);
 
     public ClientController(Client client, final MainView view ) {
         this.client = client;
         this.view = view;
+        addActionListeners();
         getFilters();
+    }
 
-
-
-        view.getButtonSignIn().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loginView = new LoginView();
-                loginView.setVisible(true);
-                loginView.getButtonOK().addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        setSign(loginView.getUserName(), loginView.getUserPassword() );
-                        if (access.equals("allow")){
-                            view.setEnabledComponents(true);
-                            loginView.setVisible(false);
-                            Component[] c =  view.getJP_CreateStudent().getComponents();
-                            for (Component k: c){
-                                k.setEnabled(true);
-
-                            }
-                            view.getButtonSignIn().setVisible(false);
-                        }else {
-                            view.setEnabledComponents(false);
-                            loginView.setNullToTF();
-                            view.showMessage("An incorrect password or username. Please enter again!");
-                        }
-                    }
-                });
-            }
-        });
+    private void addActionListeners(){
 
         view.getJButtonAddNEw().addActionListener(new ActionListener() {
             @Override
@@ -80,10 +40,19 @@ public class ClientController extends Thread {
             }
         });
 
+        view.getJB_UpdateStudent().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                changeStudent();
+                showStudents("");
+                view.buildTable(students);
+            }
+        });
+
         view.getJB_DeleteFaculty().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                deleteFaculty();
+                removeFaculty();
                 getFilters();
             }
         });
@@ -91,15 +60,8 @@ public class ClientController extends Thread {
         view.getJB_DeleteGroup().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                deleteGroup();
+                removeGroup();
                 getFilters();
-            }
-        });
-
-        view.getJCB_Faculty().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
             }
         });
 
@@ -107,8 +69,8 @@ public class ClientController extends Thread {
         view.getJB_Update().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                    showStudents("");
-                    view.buildTable(students);
+                showStudents("");
+                view.buildTable(students);
             }
         });
 
@@ -121,7 +83,7 @@ public class ClientController extends Thread {
             }
         });
 
-        view.getJB_ClearStudent().addActionListener(new ActionListener() {
+        view.getJB_DeleteStudent().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 removeStudent();
@@ -137,19 +99,7 @@ public class ClientController extends Thread {
                 view.buildTable(students);
             }
         });
-    }
 
-    private String setSign(String login, String password) {
-        if (logger.isDebugEnabled()){
-            logger.debug("Called method to get data from server");
-        }
-        try{
-            this.access = client.getSign(login, password);
-        }catch (ClientException | ServerException e){
-            logger.error("Can't update data form server",e);
-            view.getLoginView().showMessage("Can't update data from server!" );
-        }
-        return access;
     }
 
     private List<Faculty> setListFaculties(){
@@ -158,34 +108,33 @@ public class ClientController extends Thread {
         }
         try{
             if (client.getFilters()!= null) {
-               this.faculties = client.getFilters();
+                this.faculties = client.getFilters();
             }
         }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
-            view.getLoginView().showMessage("Can't update data from server!");
+            view.showMessage("Can't update data from server!");
         }
         return faculties;
 
     }
 
-    private Integer addGroup(){
+    private void addGroup(){
         if (logger.isDebugEnabled()){
             logger.debug("Called method to get data from server");
         }
         try{
             if (!view.getNew().equals("")){
                 Faculty temp = (Faculty) view.getJCB_Faculty().getSelectedItem();
-                groupID = client.addGroup(temp.getId(), view.getNew());
+                Group group = new Group(temp.getId(), view.getNew());
+                client.addGroup(group);
             }
         }catch (ClientException | ServerException e){
-            logger.error("Can't update data form server",e);
-            view.getLoginView().showMessage("Can't update data from server!");
+            logger.error("Can't update data from server!",e);
+            view.showMessage("Can't update data from server!");
         }
-        return groupID;
-
     }
 
-    private String addFaculty(){
+    private void addFaculty(){
         if (logger.isDebugEnabled()){
             logger.debug("Called method to get data from server");
         }
@@ -193,46 +142,42 @@ public class ClientController extends Thread {
             if (!view.getNew().equals("")){
                 Faculty faculty = new Faculty();
                 faculty.setName(view.getNew());
-                result = client.addFaculty(faculty);
+                client.addFaculty(faculty);
             }
         }catch (ClientException | ServerException e){
-            logger.error("Can't update data form server",e);
-            view.getLoginView().showMessage("Can't update data from server!");
+            logger.error("Can't update data from server!",e);
+            view.showMessage("Can't update data from server!");
         }
-        return result;
-
     }
 
-    private Integer deleteFaculty(){
+    private void removeFaculty(){
         if (logger.isDebugEnabled()){
             logger.debug("Called method to get data from server");
         }
         try{
-            if (!view.getJCB_Faculty().getSelectedItem().equals(null)){
+            if (!view.getJCB_Faculty().getSelectedItem().equals("")){
                 Faculty temp = (Faculty) view.getJCB_Faculty().getSelectedItem();
-               facultyID = client.deleteFaculty(temp.getId());
+                client.removeFaculty(temp.getId());
             }
         }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
-            view.getLoginView().showMessage("Can't update data from server!");
+            view.showMessage("Can't update data from server!");
         }
-        return groupID;
     }
 
-    private Integer deleteGroup(){
+    private void removeGroup(){
         if (logger.isDebugEnabled()){
             logger.debug("Called method to get data from server");
         }
         try{
-            if (!view.getJCB_Group().getSelectedItem().equals(null)){
+            if (!view.getJCB_Group().getSelectedItem().equals("")){
                 Group temp = (Group) view.getJCB_Group().getSelectedItem();
-                groupID = client.removeGroup(temp.getID());
+                client.removeGroup(temp.getID());
             }
         }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
-            view.getLoginView().showMessage("Can't update data from server!");
+            view.showMessage("Can't update data from server!");
         }
-        return groupID;
     }
 
     private void showStudents(String searchText) throws NullPointerException{
@@ -243,53 +188,69 @@ public class ClientController extends Thread {
             if (view.getJCB_Faculty().getItemCount()!= 0 && view.getJCB_Group().getItemCount() != 0){
                 Faculty f = (Faculty) view.getJCB_Faculty().getSelectedItem();
                 Group g = (Group) view.getJCB_Group().getSelectedItem();
-                    if (students.size() == 0){
-                    this.students = client.showStudents(f.getId(), g.getID(), searchText);}
-                else{
-                        this.students.clear();
-                        this.students = client.showStudents(f.getId(), g.getID(), searchText);
-                    }
+                List<Student> temp = client.showStudents(f.getId(), g.getID(), searchText);
+                if (temp.size() == 0) {
+                    view.showMessage("Group " + g.getNumber() + " doesn't have a single student!");
+                } else {
+                    students.clear();
+                    this.students = temp;
+                }
             }
-
         }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
-            view.getLoginView().showMessage("Can't update data from server!");
+            view.showMessage("Can't update data from server!");
         }
     }
 
-    private Integer addStudent() throws NullPointerException{
+    private void addStudent() throws NullPointerException{
         if (logger.isDebugEnabled()){
             logger.debug("Called method to get data from server");
         }
         try{
             if (view.getJCB_Group().getItemCount() != 0){
-
                 Group g = (Group) view.getJCB_Group().getSelectedItem();
-                Integer group = g.getID();
-                String first = view.getTextFromJTF_FirstName();
-                String last = view.getTextFromJTF_LastName();
-                String date = view.getTextFromJTF_Enrolled();
-                this.studentID = client.addStudent(group, first, last, date);
+                Student student = new Student();
+                student.setGroupId(g.getID());
+                student.setFirstName(view.getTextFromJTF_FirstName());
+                student.setLastName(view.getTextFromJTF_LastName());
+                student.setEnrolled(view.getTextFromJTF_Enrolled());
+                client.addStudent(student);
             }
-
         }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
-            view.getLoginView().showMessage("Can't update data from server!");
+            view.showMessage("Can't update data from server!");
         }
-        return studentID;
     }
 
+    private void changeStudent() throws NullPointerException{
+        if (logger.isDebugEnabled()){
+            logger.debug("Called method to get data from server");
+        }
+        try{
+                int i = view.getJT_Students().getSelectedRow();
+                int id = students.get(i).getId();
+                Student student = new Student();
+                student.setId(id);
+                student.setFirstName(view.getTextFromJTF_FirstName());
+                student.setLastName(view.getTextFromJTF_LastName());
+                student.setEnrolled(view.getTextFromJTF_Enrolled());
+                client.changeStudent(student);
+        }catch (ClientException | ServerException e){
+            logger.error("Can't update data form server",e);
+            view.showMessage("Can't update data from server!");
+        }
+    }
     private void removeStudent() throws NullPointerException{
         if (logger.isDebugEnabled()){
             logger.debug("Called method to get data from server");
         }
         try{
-                Integer h = view.getJT_Students().getSelectedRow();
-                view.getJB_ClearStudent().setEnabled(true);
-                client.removeStudent(view.getStudents().get(h).getId());
+            Integer h = view.getJT_Students().getSelectedRow();
+            view.getJB_DeleteStudent().setEnabled(true);
+            client.removeStudent(view.getStudents().get(h).getId());
         }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
-            view.getLoginView().showMessage("Can't update data from server!");
+            view.showMessage("Can't update data from server!");
         }
     }
 
@@ -329,6 +290,5 @@ public class ClientController extends Thread {
             }
         });
     }
-
 
 }

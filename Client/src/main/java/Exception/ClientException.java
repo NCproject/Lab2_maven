@@ -10,15 +10,6 @@ public class ClientException extends Exception {
     /**
      * Instantiates a new client exception.
      *
-     * @param message the message
-     */
-    public ClientException(String message) {
-        super(message);
-    }
-
-    /**
-     * Instantiates a new client exception.
-     *
      * @param e the e
      */
     public ClientException(Exception e) {

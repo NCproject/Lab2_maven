@@ -29,12 +29,11 @@ public class MainView extends JFrame implements ClientView {
     private JButton JB_DeleteFaculty = new JButton("-");
     private JButton JB_AddGroup = new JButton("+");
     private JButton JB_DeleteGroup = new JButton("-");
-    private LoginView loginView;
     private JButton JB_Update = new JButton("OK");
     private JButton JB_Search = new JButton("OK");
     private JButton JB_Reset = new JButton("Reset");
     private JTextField JTF_Search = new JTextField("Insert the Last Name...");
-    private JButton JB_SignIn = new JButton("Sign in");
+    private JButton JB_DeleteStudent = new JButton("DELETE");
     private JTextField JTF_Name = new JTextField("Insert the Name...");
     private JButton JB_AddNewFaculty = new JButton("OK");
     private JButton JB_CancelCreate = new JButton("CANCEL");
@@ -49,7 +48,7 @@ public class MainView extends JFrame implements ClientView {
     private JLabel JL_Enrolled = new JLabel("Enrolled Year:");
     private JTextField JTF_Enrolled = new JTextField("");
     private JButton JB_AddStudent = new JButton("ADD");
-    private JButton JB_ClearStudent = new JButton("DELETE");
+    private JButton JB_UpdateStudent = new JButton("UPDATE");
     private JPanel JP_CreateStudent = new JPanel(new GridBagLayout());
     private JPanel JP_South = new JPanel(new BorderLayout());
     private static final Logger logger = Logger.getLogger(MainView.class);
@@ -60,7 +59,6 @@ public class MainView extends JFrame implements ClientView {
     }
 
     private void BuildMainView(){
-
         setSize(800, 800);
         setLocation(500,150);
         setResizable(false);
@@ -83,7 +81,6 @@ public class MainView extends JFrame implements ClientView {
         addComponentToMainPanel(JCB_Faculty, 1, 0, 1, 5, 0, 0, 0);
         addComponentToMainPanel(JB_AddFaculty, 3, 0, 1, 5, 0, 0, 0 );
         addComponentToMainPanel(JB_DeleteFaculty, 4, 0, 1, 5, 0, 0, 0 );
-        setEnabledForComponents(false);
         addComponentToMainPanel(JL_Group, 0, 1, 1, 5, 0, 0, 5);
         addComponentToMainPanel(JCB_Group, 1, 1, 2, 5, 0, 0, 0 );
         addComponentToMainPanel(JB_AddGroup, 3, 1, 1, 5, 0, 0, 0 );
@@ -133,19 +130,15 @@ public class MainView extends JFrame implements ClientView {
         getContentPane().add(JS_Table, BorderLayout.CENTER);
         getContentPane().add(JSP_Create, BorderLayout.NORTH);
         buildCreateStudentPanel();
-        JP_South.add(JB_SignIn, BorderLayout.NORTH);
+        JB_DeleteStudent.setEnabled(false);
+        JP_South.add(JB_DeleteStudent, BorderLayout.NORTH);
         JP_CreateStudent.setBorder(BorderFactory.createTitledBorder("Edit"));
-        Component[] c = JP_CreateStudent.getComponents();
-        for (Component k: c){
-            k.setEnabled(false);
-        }
         JP_South.add(JP_CreateStudent, BorderLayout.CENTER);
         getContentPane().add(JP_South, BorderLayout.SOUTH);
     }
 
-    public void buildTable(List<Student> students){
+    public void buildTable(final List<Student> students){
         try {
-           // JT_Students =  new JTable();
             DefaultTableModel tModel = getObjectModel(students);
             tModel.addTableModelListener(new TableModelListener() {
                 @Override
@@ -154,7 +147,18 @@ public class MainView extends JFrame implements ClientView {
                 }
             });
             JT_Students.setModel(getObjectModel(students));
-
+            JT_Students.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    JB_DeleteStudent.setEnabled(true);
+                    int i = JT_Students.getSelectedRow();
+                    Student student = students.get(JT_Students.getSelectedRow());
+                    JTF_FirstName.setText(student.getFirstName());
+                    JTF_LastName.setText(student.getLastName());
+                    JTF_Enrolled.setText(student.getEnrolled());
+                    JP_CreateStudent.updateUI();
+                }
+            });
 
         } catch (ClientException e) {
             e.printStackTrace();
@@ -177,28 +181,12 @@ public class MainView extends JFrame implements ClientView {
         addComponentToCreateStudentPanel(JL_Enrolled, 0, 2, 1, 10, 20, 10, 5);
         addComponentToCreateStudentPanel(JTF_Enrolled, 1, 2, 2, 10, 0, 10, 20);
         addComponentToCreateStudentPanel(JB_AddStudent, 1, 3, 1, 10, 20, 10, 5);
-        addComponentToCreateStudentPanel(JB_ClearStudent, 2, 3, 1, 10, 0, 10, 20);
+        addComponentToCreateStudentPanel(JB_UpdateStudent, 2, 3, 1, 10, 0, 10, 20);
 
     }
 
     public void showMessage(String message){
         JOptionPane.showMessageDialog(this, message );
-    }
-
-    private void setEnabledForComponents(boolean flag){
-        JB_AddFaculty.setEnabled(flag);
-        JB_DeleteFaculty.setEnabled(flag);
-        JB_AddGroup.setEnabled(flag);
-        JB_DeleteGroup.setEnabled(flag);
-
-    }
-
-    public LoginView getLoginView(){
-        return loginView;
-    }
-
-    public JButton getButtonSignIn(){
-        return JB_SignIn;
     }
 
     public JComboBox getJCB_Faculty(){
@@ -207,13 +195,6 @@ public class MainView extends JFrame implements ClientView {
 
     public JComboBox getJCB_Group(){
         return JCB_Group;
-    }
-
-    public void setEnabledComponents(boolean flag){
-        JB_AddFaculty.setEnabled(flag);
-        JB_DeleteFaculty.setEnabled(flag);
-        JB_AddGroup.setEnabled(flag);
-        JB_DeleteGroup.setEnabled(flag);
     }
 
     public JButton getJB_Update(){
@@ -298,6 +279,8 @@ public class MainView extends JFrame implements ClientView {
 
         model1 = new DefaultTableModel(data, columnNames);
         return model1;
+
+
     }
 
     public String getTextFromJTF_FirstName(){
@@ -324,10 +307,6 @@ public class MainView extends JFrame implements ClientView {
         return students;
     }
 
-    public JButton getJB_ClearStudent(){
-        return JB_ClearStudent;
-    }
-
     public JButton getJB_Search(){
         return JB_Search;
     }
@@ -336,8 +315,8 @@ public class MainView extends JFrame implements ClientView {
         return JTF_Search.getText();
     }
 
-    public JComponent getJP_CreateStudent(){
-        return JP_CreateStudent;
-    }
+    public JButton getJB_DeleteStudent(){ return JB_DeleteStudent; }
+
+    public JButton getJB_UpdateStudent() {return JB_UpdateStudent; };
 
 }

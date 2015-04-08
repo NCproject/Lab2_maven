@@ -1,28 +1,15 @@
 package Model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import Exception.*;
 
 /**
  * The Class Group.
  */
 public class Group {
 
-    /** The faculty. */
-    private String facultyName;
-
     /** The number. */
     private String number;
-
-    /** The group. */
-    private Element group;
 
     private Integer id;
 
@@ -49,17 +36,17 @@ public class Group {
      *
      * @return the faculty
      */
-    public String getFaculty() {
-        return facultyName;
+    public int getFaculty() {
+        return facultyId;
     }
 
     /**
      * Sets the faculty.
      *
-     * @param facultyName the new faculty
+     * @param facultyId the new faculty
      */
-    public void setFaculty(String facultyName) {
-        this.facultyName = facultyName;
+    public void setFaculty(int facultyId) {
+        this.facultyId = facultyId;
     }
 
     /**
@@ -80,10 +67,6 @@ public class Group {
         this.number = number;
     }
 
-    public void setFaculty(int facultyId) {
-        this.facultyId = facultyId;
-    }
-
     public String toString(){
         return number;
     }
@@ -94,5 +77,19 @@ public class Group {
 
     public Integer getID(){
         return id;
+    }
+
+    /**
+     * Creates the node.
+     *
+     * @param document the document
+     */
+    public void createNode(Document document, Element body) {
+        Element nodeFaculty = document.createElement("faculty");
+        nodeFaculty.setTextContent(Integer.toString(getFaculty()));
+        body.appendChild(nodeFaculty);
+        Element nodeNumber = document.createElement("number");
+        nodeNumber.setTextContent(getNumber());
+        body.appendChild(nodeNumber);
     }
 }
