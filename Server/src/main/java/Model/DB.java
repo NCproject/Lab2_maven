@@ -10,7 +10,7 @@ public class DB {
     /**
      * logger
      */
-    private static final Logger log = Logger.getLogger(Server.class);
+    private static final Logger log = Logger.getLogger(DB.class);
 
     /**
      * DB host
@@ -203,13 +203,12 @@ public class DB {
      * @return int faculty`s id
      * @throws SQLException
      */
-    public int addFaculty(Faculty faculty) throws SQLException {
+    public void addFaculty(Faculty faculty) throws SQLException {
         if (log.isDebugEnabled())
             log.debug("Add faculty. " + faculty.toString());
         PreparedStatement st = conn.prepareStatement("INSERT INTO FACULTIES(NAME) VALUES(?)");
         st.setString(1, faculty.getName());
         st.execute();
-        return getId("faculties");
     }
 
     /**
@@ -219,14 +218,13 @@ public class DB {
      * @return int group`s id
      * @throws SQLException
      */
-    public int addGroup(Group group) throws SQLException {
+    public void addGroup(Group group) throws SQLException {
         if (log.isDebugEnabled())
             log.debug("Add group. " + group.toString());
         PreparedStatement st = conn.prepareStatement("INSERT INTO GROUPS(FACULTY_ID, NUMBER) VALUES(?,?)");
         st.setInt(1, group.getFakulty());
         st.setString(2, group.getNumber());
         st.execute();
-        return getId("groups");
     }
 
     /**
@@ -236,7 +234,7 @@ public class DB {
      * @return int student`s id
      * @throws SQLException
      */
-    public int addStudent(Student student) throws SQLException {
+    public void addStudent(Student student) throws SQLException {
         if (log.isDebugEnabled())
             log.debug("Add student. " + student.toString());
         PreparedStatement st = conn.prepareStatement("INSERT INTO STUDENTS(GROUP_ID, FIRST_NAME, LAST_NAME, ENROLLED) VALUES(?,?,?,?)");
@@ -244,7 +242,7 @@ public class DB {
         st.setString(2, student.getFirstName());
         st.setString(3, student.getLastName());
         st.setString(4, student.getEnrolled());
-        return getId("students");
+        st.execute();
     }
 
     /**
