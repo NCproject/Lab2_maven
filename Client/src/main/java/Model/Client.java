@@ -117,34 +117,6 @@ public class Client implements ClientModel{
     }
 
     /**
-     * Create new message according to ACTION
-     */
-    public String createMessage(String ACTION, String faculty, String group,
-                                String firstName, String lastName, String  enrolledDate, Integer studentID, Integer facultyID, Integer groupID, String searchText) {
-        if (log.isDebugEnabled()){
-            log.debug("Creating SOAP message called");
-        }
-
-        StringBuilder message = new StringBuilder();
-        message.append("<envelope><header><action>");
-        message.append(ACTION);
-        message.append("</action>");
-
-        if ("CHANGEGroup".equals(ACTION)) {
-            message.append("<groupID>");
-            message.append(groupID);
-            message.append("</groupID>");
-            message.append("</header><body>");
-            message.append("<groupName>");
-            message.append(group);
-            message.append("</groupName>");
-        }
-
-        message.append("</body></envelope>");
-        return message.toString();
-    }
-
-    /**
      * Reading answer from server
      */
     public String reading() throws ServerException {
