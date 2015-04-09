@@ -123,24 +123,20 @@ public class Student {
      * @param document the document
      */
     public void createNode(Document document, Element body) {
-        Element nodeGroup = document.createElement("group");
-        nodeGroup.setTextContent(Integer.toString(getGroupId()));
-        body.appendChild(nodeGroup);
-        Element nodeStudentName = document.createElement("studentName");
-        nodeStudentName.setTextContent(getFirstName());
-        body.appendChild(nodeStudentName);
-        Element nodeStudentLastName = document.createElement("studentLastname");
-        nodeStudentLastName.setTextContent(getLastName());
-        body.appendChild(nodeStudentLastName);
-        Element nodeEnrolledDate = document.createElement("enrolledDate");
-        nodeEnrolledDate.setTextContent(getEnrolled());
-        body.appendChild(nodeEnrolledDate);
+        appendChildToBody(document, body, "group", Integer.toString(getGroupId()));
+        appendChildToBody(document, body, "studentName", getFirstName());
+        appendChildToBody(document, body, "studentLastname", getLastName());
+        appendChildToBody(document, body, "enrolledDate", getEnrolled());
+    }
+
+    private void appendChildToBody(Document document, Element body, String name, String text ){
+        Element element = document.createElement(name);
+        element.setTextContent(text);
+        body.appendChild(element);
     }
 
     public void createNodeId(Document document, Element body){
-        Element nodeId = document.createElement("id");
-        nodeId.setTextContent(Integer.toString(getId()));
-        body.appendChild(nodeId);
+        appendChildToBody(document, body, "id", Integer.toString(getId()));
     }
 
 }

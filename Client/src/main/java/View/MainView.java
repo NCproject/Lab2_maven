@@ -126,6 +126,15 @@ public class MainView extends JFrame implements ClientView {
             }
         });
 
+        JB_CancelCreate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JSP_Create.setRightComponent(null);
+                JSP_Create.setDividerLocation(400);
+                JSP_Create.setRightComponent(JP_Create);
+            }
+        });
+
         JScrollPane JS_Table = new JScrollPane(JT_Students);
         getContentPane().add(JS_Table, BorderLayout.CENTER);
         getContentPane().add(JSP_Create, BorderLayout.NORTH);
@@ -151,7 +160,6 @@ public class MainView extends JFrame implements ClientView {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     JB_DeleteStudent.setEnabled(true);
-                    int i = JT_Students.getSelectedRow();
                     Student student = students.get(JT_Students.getSelectedRow());
                     JTF_FirstName.setText(student.getFirstName());
                     JTF_LastName.setText(student.getLastName());
@@ -182,35 +190,31 @@ public class MainView extends JFrame implements ClientView {
         addComponentToCreateStudentPanel(JTF_Enrolled, 1, 2, 2, 10, 0, 10, 20);
         addComponentToCreateStudentPanel(JB_AddStudent, 1, 3, 1, 10, 20, 10, 5);
         addComponentToCreateStudentPanel(JB_UpdateStudent, 2, 3, 1, 10, 0, 10, 20);
-
     }
 
-    public void showMessage(String message){
-        JOptionPane.showMessageDialog(this, message );
-    }
+    public DefaultTableModel getObjectModel(List<Student> students)  throws ClientException  {
+        if (logger.isDebugEnabled()){
+            logger.debug("Called method to get object model");
+        }
 
-    public JComboBox getJCB_Faculty(){
-        return JCB_Faculty;
-    }
+        this.students = students;
+        String[][] data = new String[students.size()][3];
+        Object[] columnNames = new Object[3];
+        columnNames[0] = "First Name";
+        columnNames[1] = "Last Name";
+        columnNames[2] = "Enrolled";
 
-    public JComboBox getJCB_Group(){
-        return JCB_Group;
-    }
+        int i = 0;
+        while(i < students.size()){
+            for (Student st : students) {
+                data[i][0] = st.getFirstName();
+                data[i][1] = st.getLastName();
+                data[i][2] = st.getEnrolled();
+                i++;
+            }}
 
-    public JButton getJB_Update(){
-        return JB_Update;
-    }
-
-    public String getNew(){
-        return JTF_Name.getText();
-    }
-
-    public JButton getJButtonAddNEw(){
-        return JB_AddNewFaculty;
-    }
-
-    public JButton getJB_DeleteFaculty(){
-        return JB_DeleteFaculty;
+        model1 = new DefaultTableModel(data, columnNames);
+        return model1;
     }
 
     private ActionListener setActionToButtonNew(){
@@ -243,9 +247,36 @@ public class MainView extends JFrame implements ClientView {
 
                     }
                 });
-
             }
         };
+    }
+
+    public void showMessage(String message){
+        JOptionPane.showMessageDialog(this, message );
+    }
+
+    public JComboBox getJCB_Faculty(){
+        return JCB_Faculty;
+    }
+
+    public JComboBox getJCB_Group(){
+        return JCB_Group;
+    }
+
+    public JButton getJB_Update(){
+        return JB_Update;
+    }
+
+    public String getNew(){
+        return JTF_Name.getText();
+    }
+
+    public JButton getJButtonAddNEw(){
+        return JB_AddNewFaculty;
+    }
+
+    public JButton getJB_DeleteFaculty(){
+        return JB_DeleteFaculty;
     }
 
     public boolean getButtonAddClick(){
@@ -254,33 +285,6 @@ public class MainView extends JFrame implements ClientView {
 
     public JButton getJB_DeleteGroup(){
         return JB_DeleteGroup;
-    }
-
-    public DefaultTableModel getObjectModel(List<Student> students)  throws ClientException  {
-        if (logger.isDebugEnabled()){
-            logger.debug("Called method to get object model");
-        }
-
-        this.students = students;
-        String[][] data = new String[students.size()][3];
-        Object[] columnNames = new Object[3];
-        columnNames[0] = "First Name";
-        columnNames[1] = "Last Name";
-        columnNames[2] = "Enrolled";
-
-        int i = 0;
-        while(i < students.size()){
-            for (Student st : students) {
-                data[i][0] = st.getFirstName();
-                data[i][1] = st.getLastName();
-                data[i][2] = st.getEnrolled();
-                i++;
-            }}
-
-        model1 = new DefaultTableModel(data, columnNames);
-        return model1;
-
-
     }
 
     public String getTextFromJTF_FirstName(){
@@ -317,6 +321,10 @@ public class MainView extends JFrame implements ClientView {
 
     public JButton getJB_DeleteStudent(){ return JB_DeleteStudent; }
 
-    public JButton getJB_UpdateStudent() {return JB_UpdateStudent; };
+    public JButton getJB_UpdateStudent() {return JB_UpdateStudent; }
+
+    public JButton getJB_Reset() { return JB_Reset; }
+
+
 
 }

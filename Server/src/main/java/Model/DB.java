@@ -145,7 +145,7 @@ public class DB {
                     query += (facultyId != 0 ? " AND " : "") + "s.group_id = ?";
                 if (!lastName.equals(""))
                     query += ((facultyId != 0 || groupId != 0) ? " AND " : "")
-                            + "s.last_name LIKE '%?%'";
+                            + "s.last_name LIKE ?";
             }
 
             PreparedStatement st = conn.prepareStatement(query);

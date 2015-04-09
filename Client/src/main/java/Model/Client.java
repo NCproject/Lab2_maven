@@ -67,6 +67,12 @@ public class Client implements ClientModel{
         }
     }
 
+    private void appendChildToBody(String name, String text ){
+        Element element = document.createElement(name);
+        element.setTextContent(text);
+        body.appendChild(element);
+    }
+
     private void createAction(String ACTION){
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -101,18 +107,13 @@ public class Client implements ClientModel{
         return sw.toString();
     }
 
-
     public String authorisationMessage(String login, String password){
         if (log.isDebugEnabled()){
             log.debug("Creating SOAP message called");
         }
         createAction("SIGN");
-        Element loginTag = document.createElement("login");
-        loginTag.setTextContent(login);
-        body.appendChild(loginTag);
-        Element passwordTag = document.createElement("password");
-        passwordTag.setTextContent(password);
-        body.appendChild(passwordTag);
+        appendChildToBody("login", login);
+        appendChildToBody("password", password);
         return nodeToString(messageText);
     }
 
@@ -242,9 +243,7 @@ public class Client implements ClientModel{
             log.debug("Called removing group");
         }
         createAction("REMOVE_GROUP");
-        Element nodeId = document.createElement("id");
-        nodeId.setTextContent(Integer.toString(groupID));
-        body.appendChild(nodeId);
+        appendChildToBody("id", Integer.toString(groupID));
         sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
     }
@@ -264,9 +263,7 @@ public class Client implements ClientModel{
             log.debug("Called removing faculty");
         }
         createAction("REMOVE_FACULTY");
-        Element nodeId = document.createElement("id");
-        nodeId.setTextContent(Integer.toString(facultyID));
-        body.appendChild(nodeId);
+        appendChildToBody("id", Integer.toString(facultyID));
         sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
     }
@@ -276,15 +273,9 @@ public class Client implements ClientModel{
             log.debug("Called adding student");
         }
         createAction("SEARCH_STUDENTS");
-        Element nodeFaculty = document.createElement("faculty");
-        nodeFaculty.setTextContent(Integer.toString(facultyID));
-        body.appendChild(nodeFaculty);
-        Element nodeGroup = document.createElement("group");
-        nodeGroup.setTextContent(Integer.toString(groupID));
-        body.appendChild(nodeGroup);
-        Element nodeSearchText = document.createElement("searchText");
-        nodeSearchText.setTextContent(searchText);
-        body.appendChild(nodeSearchText);
+        appendChildToBody("faculty", Integer.toString(facultyID));
+        appendChildToBody("group", Integer.toString(groupID));
+        appendChildToBody("searchText", searchText);
         sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
         return studentsList;
@@ -316,9 +307,7 @@ public class Client implements ClientModel{
             log.debug("Called removing student");
         }
         createAction("REMOVE_STUDENT");
-        Element nodeId = document.createElement("id");
-        nodeId.setTextContent(Integer.toString(studentID));
-        body.appendChild(nodeId);
+        appendChildToBody("id", Integer.toString(studentID));
         sendMessage(nodeToString(messageText));
         parsingAnswer(reading());
     }

@@ -100,6 +100,13 @@ public class ClientController extends Thread {
             }
         });
 
+        view.getJB_Reset().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showStudents("");
+                view.buildTable(students);
+            }
+        });
     }
 
     private List<Faculty> setListFaculties(){
