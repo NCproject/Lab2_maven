@@ -13,9 +13,4 @@ public class MainClass {
         AccessController controller = new AccessController(client, loginView);
     }
 
-
-
-    // mainView.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    //mainView.pack();
-    //mainView.setVisible(true);
 }

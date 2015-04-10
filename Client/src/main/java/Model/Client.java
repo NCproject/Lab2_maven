@@ -184,6 +184,9 @@ public class Client implements ClientModel{
             } else  if ("SEARCH_STUDENTS".equals(action)){
                 XPathExpression expr3 = xPath.compile("//students/*");
                 NodeList xStudents = (NodeList) expr3.evaluate(doc, XPathConstants.NODESET);
+                if (studentsList.size() != 0 ) {
+                    studentsList.clear();
+                }
                 for (int i = 0; i < xStudents.getLength(); i++) {
                     Student student = new Student();
                     Element g = (Element) xStudents.item(i);
@@ -194,15 +197,12 @@ public class Client implements ClientModel{
                     this.studentsList.add(student);
                 }
             }else
-
                 this.access = xPath.evaluate("//status", xBody);
                 if (access.equals("Exception")){
                     String stackTrace = xPath.evaluate("//stackTrace", xBody);
                     log.error(stackTrace);
                     throw new ServerException(stackTrace);
                 }
-
-
         } catch(XPathExpressionException | IOException | ParserConfigurationException | SAXException e){
             throw new ServerException(e);
         }

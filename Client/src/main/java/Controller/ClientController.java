@@ -15,7 +15,7 @@ public class ClientController extends Thread {
     private Client client;
 
     private List<Faculty> faculties;
-    private List<Student> students = new ArrayList<>();
+    private List<Student> students;
     private static final Logger logger = Logger.getLogger(ClientController.class);
 
     public ClientController(Client client, final MainView view ) {
@@ -45,7 +45,6 @@ public class ClientController extends Thread {
             public void actionPerformed(ActionEvent e) {
                 changeStudent();
                 showStudents("");
-                view.buildTable(students);
             }
         });
 
@@ -70,7 +69,6 @@ public class ClientController extends Thread {
             @Override
             public void actionPerformed(ActionEvent e) {
                 showStudents("");
-                view.buildTable(students);
             }
         });
 
@@ -79,7 +77,6 @@ public class ClientController extends Thread {
             public void actionPerformed(ActionEvent e) {
                 addStudent();
                 showStudents("");
-                view.buildTable(students);
             }
         });
 
@@ -88,7 +85,6 @@ public class ClientController extends Thread {
             public void actionPerformed(ActionEvent e) {
                 removeStudent();
                 showStudents("");
-                view.buildTable(students);
             }
         });
 
@@ -96,7 +92,6 @@ public class ClientController extends Thread {
             @Override
             public void actionPerformed(ActionEvent e) {
                 showStudents(view.getTextFromJTF_Search());
-                view.buildTable(students);
             }
         });
 
@@ -104,7 +99,6 @@ public class ClientController extends Thread {
             @Override
             public void actionPerformed(ActionEvent e) {
                 showStudents("");
-                view.buildTable(students);
             }
         });
     }
@@ -195,13 +189,16 @@ public class ClientController extends Thread {
             if (view.getJCB_Faculty().getItemCount()!= 0 && view.getJCB_Group().getItemCount() != 0){
                 Faculty f = (Faculty) view.getJCB_Faculty().getSelectedItem();
                 Group g = (Group) view.getJCB_Group().getSelectedItem();
-                List<Student> temp = client.showStudents(f.getId(), g.getID(), searchText);
-                if (temp.size() == 0) {
+                students = client.showStudents(f.getId(), g.getID(), searchText);
+                if (students.size() == 0) {
                     view.showMessage("Group " + g.getNumber() + " doesn't have a single student!");
-                } else {
+                }/* else {
                     students.clear();
-                    this.students = temp;
-                }
+                    students = client.showStudents(f.getId(), g.getID(), searchText);
+                }*/
+                view.buildTable(students);
+            } else {
+                view.showMessage("Please create Faculty or Group.");
             }
         }catch (ClientException | ServerException e){
             logger.error("Can't update data form server",e);
@@ -275,6 +272,7 @@ public class ClientController extends Thread {
             for (Faculty f : facultyList){
                 view.getJCB_Faculty().addItem(f);
                 if (view.getJCB_Faculty().getSelectedItem().equals(f)){
+                    view.getJCB_Group().removeAllItems();
                     List<Group> groups = f.getGroups();
                     for (Group g : groups){
                         view.getJCB_Group().addItem(g);

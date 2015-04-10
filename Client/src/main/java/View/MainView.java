@@ -38,7 +38,7 @@ public class MainView extends JFrame implements ClientView {
     private JButton JB_AddNewFaculty = new JButton("OK");
     private JButton JB_CancelCreate = new JButton("CANCEL");
     private JTable JT_Students;
-    DefaultTableModel model1;
+    DefaultTableModel model;
     private List<Student> students = new ArrayList<>();
     private boolean addButtonClick;
     private JLabel JL_FirstName = new JLabel("First Name:");
@@ -148,14 +148,9 @@ public class MainView extends JFrame implements ClientView {
 
     public void buildTable(final List<Student> students){
         try {
-            DefaultTableModel tModel = getObjectModel(students);
-            tModel.addTableModelListener(new TableModelListener() {
-                @Override
-                public void tableChanged(TableModelEvent e) {
 
-                }
-            });
-            JT_Students.setModel(getObjectModel(students));
+            DefaultTableModel tModel = getObjectModel(students);
+            JT_Students.setModel(tModel);
             JT_Students.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -167,7 +162,7 @@ public class MainView extends JFrame implements ClientView {
                     JP_CreateStudent.updateUI();
                 }
             });
-
+        JT_Students.updateUI();
         } catch (ClientException e) {
             e.printStackTrace();
         }catch (NullPointerException e) {
@@ -213,8 +208,8 @@ public class MainView extends JFrame implements ClientView {
                 i++;
             }}
 
-        model1 = new DefaultTableModel(data, columnNames);
-        return model1;
+        model = new DefaultTableModel(data, columnNames);
+        return model;
     }
 
     private ActionListener setActionToButtonNew(){
