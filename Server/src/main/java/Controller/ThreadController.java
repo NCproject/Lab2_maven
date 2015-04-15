@@ -146,14 +146,7 @@ public class ThreadController extends Thread {
             if ("SHOW_FILTERS".equals(action)) {
             	out.writeUTF(showMessage(model.getFilters()));
             }
-            
-            if ("SEARCH_STUDENTS".equals(action)) {
-            	int facultyId = Integer.parseInt(xPath.evaluate("//faculty", xBody));
-            	int groupId = Integer.parseInt(xPath.evaluate("//group", xBody));
-            	String lastName = xPath.evaluate("//searchText", xBody);
-            	out.writeUTF(filterMessage(model.getStudentsByFilters(facultyId, groupId, lastName)));
-            }  
-            
+
             if ("SEARCH_STUDENTS".equals(action)) {
             	int facultyId = Integer.parseInt(xPath.evaluate("//faculty", xBody));
             	int groupId = Integer.parseInt(xPath.evaluate("//group", xBody));
