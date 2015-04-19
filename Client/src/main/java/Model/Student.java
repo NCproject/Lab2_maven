@@ -129,12 +129,27 @@ public class Student {
         appendChildToBody(document, body, "enrolledDate", getEnrolled());
     }
 
+    /**
+     * Appends child to the body
+     *
+     * @param document document
+     * @param body body
+     * @param name name
+     * @param text text
+     */
     private void appendChildToBody(Document document, Element body, String name, String text ){
         Element element = document.createElement(name);
         element.setTextContent(text);
         body.appendChild(element);
     }
 
+
+    /**
+     * Appends child "id" to the body
+     *
+     * @param document document
+     * @param body body
+     */
     public void createNodeId(Document document, Element body){
         appendChildToBody(document, body, "id", Integer.toString(getId()));
     }

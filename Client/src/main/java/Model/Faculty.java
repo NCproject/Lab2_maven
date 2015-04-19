@@ -12,14 +12,15 @@ public class Faculty {
     /** The name. */
     private String name;
 
+    /** The ID of the Faculty. */
     private int id;
 
+    /** The list of Groups. */
     private ArrayList<Group> groups = new ArrayList<>();
 
     public Faculty() {
         // TODO Auto-generated constructor stub
     }
-
 
     /**
      * Adds the group.
@@ -30,16 +31,26 @@ public class Faculty {
         groups.add(group);
     }
 
+    /**
+     * Sets the id
+     *
+     * @param id id
+     */
     public void setId(Integer id){
         this.id = id;
     }
 
+    /**
+     * Gets the id
+     *
+     * @return id
+     */
     public Integer getId(){
         return id;
     }
 
     /**
-     * Gets the name.
+     * Gets the name
      *
      * @return the name
      */
@@ -57,7 +68,7 @@ public class Faculty {
     }
 
     /**
-     * Gets the groups.
+     * Gets the groups
      *
      * @return the groups
      */
@@ -66,13 +77,12 @@ public class Faculty {
         return groups;
     }
 
-
     public String toString(){
         return name;
     }
 
     /**
-     * Creates the node.
+     * Creates the node
      *
      * @param document the document
      */

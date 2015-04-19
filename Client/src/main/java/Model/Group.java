@@ -11,6 +11,7 @@ public class Group {
     /** The number. */
     private String number;
 
+    /** The id. */
     private Integer id;
 
     /** The faculty. */
@@ -26,11 +27,11 @@ public class Group {
      * @param facultyId the faculty
      * @param number the number
      */
-
     public Group(int facultyId, String number) {
         setFaculty(facultyId);
         setNumber(number);
     }
+
     /**
      * Gets the faculty.
      *
@@ -67,14 +68,27 @@ public class Group {
         this.number = number;
     }
 
+    /**
+     * @return number
+     */
     public String toString(){
         return number;
     }
 
+    /**
+     * Sets the id
+     *
+     * @param id id
+     */
     public void setID(Integer id){
         this.id = id;
     }
 
+    /**
+     * Gets the id
+     *
+     * @return id
+     */
     public Integer getID(){
         return id;
     }

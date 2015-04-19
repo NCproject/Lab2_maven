@@ -1,7 +1,5 @@
 package Model;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.io.*;
 
 import javax.xml.parsers.*;
@@ -9,54 +7,47 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
 
 import org.w3c.dom.*;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 import org.apache.log4j.Logger;
 
 import Exception.*;
 
 public class Client implements ClientModel{
-    /** The logger. */
-    private static final Logger log = Logger.getLogger(Client.class);
 
-    /** List of faculties. */
-    private List<Faculty> facultiesList;
-
-    /** List of students. */
-    private List<Student> studentsList;
-
-    private String access;
+    /** The text of message to the server */
     private Element messageText;
+
+    /** The body of the xml request */
     private Element body;
+
+    /** The document */
     private Document document;
+
+    /** The OutputStream to the server*/
     private DataOutputStream out;
 
-    public Client(){
-    }
+    /** The logger. */
+    private static final Logger logger = Logger.getLogger(Client.class);
 
     /**
-     * Send message to server
+     * Sends message to the server
+     *
+     * @param message Message
+     * @throws ClientException
      */
     public void sendMessage(String message) throws ClientException {
-        if (log.isDebugEnabled()){
-            log.debug("Called send message");
+        if (logger.isDebugEnabled()){
+            logger.debug("Sending a message to the server: " + message);
         }
         try {
             out = new DataOutputStream(SocketSingleton.getSocket().getOutputStream());
             out.writeUTF(message);
         } catch (IOException e) {
             throw new ClientException(e);
-        }finally {
+        } finally {
             if (!(out == null)) {
                 try {
                     out.flush();
@@ -67,12 +58,34 @@ public class Client implements ClientModel{
         }
     }
 
+    /**
+     * Appends Child to the body
+     *
+     * @param name Name of the new Element
+     * @param text TextContext
+     */
     private void appendChildToBody(String name, String text ){
         Element element = document.createElement(name);
         element.setTextContent(text);
         body.appendChild(element);
     }
 
+    /**
+     * Set a text to the logger.debug
+     *
+     * @param text Text to the debug
+     */
+    private static void debugLogger(String text){
+        if (logger.isDebugEnabled()){
+            logger.debug(text);
+        }
+    }
+
+    /**
+     * Creates Action tag in the messageText
+     *
+     * @param ACTION Action
+     */
     private void createAction(String ACTION){
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -89,28 +102,37 @@ public class Client implements ClientModel{
             body = document.createElement("body");
             messageText.appendChild(body);
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
+            logger.error(e);
         }
-
     }
 
+    /**
+     * Transform the MessageText to he String
+     *
+     * @param node
+     * @return String node
+     */
     private static String nodeToString(Node node) {
         StringWriter sw = new StringWriter();
         try {
-            Transformer t = TransformerFactory.newInstance().newTransformer();
-            t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            t.setOutputProperty(OutputKeys.INDENT, "yes");
-            t.transform(new DOMSource(node), new StreamResult(sw));
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.transform(new DOMSource(node), new StreamResult(sw));
         } catch (TransformerException te) {
             System.out.println("nodeToString Transformer Exception");
         }
         return sw.toString();
     }
 
+    /**
+     * Creates a request for access.
+     *
+     * @param login User Login
+     * @param password User Password
+     * @return messageText
+     */
     public String authorisationMessage(String login, String password){
-        if (log.isDebugEnabled()){
-            log.debug("Creating SOAP message called");
-        }
         createAction("SIGN");
         appendChildToBody("login", login);
         appendChildToBody("password", password);
@@ -118,197 +140,123 @@ public class Client implements ClientModel{
     }
 
     /**
-     * Reading answer from server
+     * Sends a request for the List of Faculties
+     *
+     * @throws ClientException
      */
-    public String reading() throws ServerException {
-        if (log.isDebugEnabled()){
-            log.debug("Reading stream called");
-        }
-        /* Answer from server side. */
-        String xmlResult;
-        try {
-            DataInputStream in = new DataInputStream(SocketSingleton.getSocket().getInputStream());
-            xmlResult = in.readUTF();
-        } catch (Exception e) {
-            throw new ServerException(e);
-        }
-        return xmlResult;
+    public void getFilters() throws ClientException {
+        createAction("SHOW_FILTERS");
+        sendMessage(nodeToString(messageText));
     }
 
     /**
-     * Parsing server answer according to ACTION
+     * Sends a request for the Adding Group
+     *
+     * @param group Group
+     * @throws ClientException
      */
-    public void parsingAnswer(String xmlResult) throws ServerException {
-        if (log.isDebugEnabled()){
-            log.debug("Parsing answer called");
-        }
-        try{
-            InputSource is = new InputSource();
-            is.setCharacterStream(new StringReader(xmlResult));
-            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
-            XPathFactory factory = XPathFactory.newInstance();
-            XPath xPath = factory.newXPath();
-            XPathExpression expr = xPath.compile("//envelope/*");
-
-            Object result = expr.evaluate(doc, XPathConstants.NODESET);
-            NodeList xDoc = (NodeList) result;
-
-            NodeList xHeader = (NodeList) xDoc.item(0);
-            Node xItem =  xDoc.item(1);
-            NodeList xBody = (NodeList) xItem.getFirstChild();
-            String action = xPath.evaluate("//action", xHeader);
-            if ("SHOW_FILTERS".equals(action)) {
-                facultiesList = new ArrayList<>();
-                studentsList = new ArrayList<>();
-                XPathExpression expr2 = xPath.compile("//faculties/*");
-                NodeList xFaculties = (NodeList) expr2.evaluate(doc, XPathConstants.NODESET);
-                for (int i = 0; i < xFaculties.getLength(); i++) {
-                    Faculty faculty = new Faculty();
-                    Element g = (Element) xFaculties.item(i);
-                    faculty.setId(Integer.parseInt(g.getFirstChild().getTextContent()));
-                    faculty.setName(xPath.evaluate("name", g));
-                    NodeList groups = g.getElementsByTagName("group");
-
-                    for (int u = 0; u < groups.getLength(); u++) {
-                        Group group = new Group();
-                        Element studentElement = (Element) groups.item(u);
-                        Integer groupId = Integer.parseInt(studentElement.getFirstChild().getTextContent());
-                        group.setID(groupId);
-                        group.setNumber(xPath.evaluate("number", studentElement));
-                        faculty.addGroup(group);
-                    }
-                    this.facultiesList.add(faculty);
-                }
-            } else  if ("SIGN".equals(action)){
-                this.access = xPath.evaluate("//access", xBody);
-            } else  if ("SEARCH_STUDENTS".equals(action)){
-                XPathExpression expr3 = xPath.compile("//students/*");
-                NodeList xStudents = (NodeList) expr3.evaluate(doc, XPathConstants.NODESET);
-                if (studentsList.size() != 0 ) {
-                    studentsList.clear();
-                }
-                for (int i = 0; i < xStudents.getLength(); i++) {
-                    Student student = new Student();
-                    Element g = (Element) xStudents.item(i);
-                    student.setId(Integer.parseInt(g.getFirstChild().getTextContent()));
-                    student.setFirstName(xPath.evaluate("firstName", g));
-                    student.setLastName(xPath.evaluate("lastName", g));
-                    student.setEnrolled(xPath.evaluate("enrolledDate", g));
-                    this.studentsList.add(student);
-                }
-            }else
-                this.access = xPath.evaluate("//status", xBody);
-                if (access.equals("Exception")){
-                    String stackTrace = xPath.evaluate("//stackTrace", xBody);
-                    log.error(stackTrace);
-                    throw new ServerException(stackTrace);
-                }
-        } catch(XPathExpressionException | IOException | ParserConfigurationException | SAXException e){
-            throw new ServerException(e);
-        }
-    }
-
-    public String getAccess(String login, String password) throws ServerException,ClientException {
-        if (log.isDebugEnabled()){
-            log.debug("Called get update");
-        }
-        sendMessage(authorisationMessage(login, password));
-        parsingAnswer(reading());
-        return access;
-    }
-
-
-    public List<Faculty> getFilters() throws ServerException, ClientException {
-        if (log.isDebugEnabled()){
-            log.debug("Called get filters");
-        }
-        createAction("SHOW_FILTERS");
-        sendMessage(nodeToString(messageText));
-        parsingAnswer(reading());
-        return facultiesList;
-    }
-
-    public void addGroup( Group group) throws ServerException, ClientException {
-        if (log.isDebugEnabled()){
-            log.debug("Called adding group");
-        }
+    public void addGroup( Group group) throws ClientException {
+        debugLogger("Adding a group: " + group);
         createAction("ADD_GROUP");
         group.createNode(document, body);
         sendMessage(nodeToString(messageText));
-        parsingAnswer(reading());
     }
 
-    public void removeGroup( Integer groupID) throws ServerException, ClientException {
-        if (log.isDebugEnabled()){
-            log.debug("Called removing group");
-        }
+
+    /**
+     * Sends a request for the Removing Group
+     *
+     * @param groupID ID of the Group
+     * @throws ClientException
+     */
+    public void removeGroup( Integer groupID) throws ClientException {
+        debugLogger("Removing a group with ID: " + groupID);
         createAction("REMOVE_GROUP");
         appendChildToBody("id", Integer.toString(groupID));
         sendMessage(nodeToString(messageText));
-        parsingAnswer(reading());
     }
 
-    public void addFaculty(Faculty faculty) throws ServerException, ClientException {
-        if (log.isDebugEnabled()){
-            log.debug("Called adding faculty");
-        }
+
+    /**
+     * Sends a request for the Adding Faculty
+     *
+     * @param faculty Faculty
+     * @throws ClientException
+     */
+    public void addFaculty(Faculty faculty) throws ClientException {
+        debugLogger("Adding a faculty: " + faculty);
         createAction("ADD_FACULTY");
         faculty.createNode(document, body);
         sendMessage(nodeToString(messageText));
-        parsingAnswer(reading());
     }
 
-    public void removeFaculty( Integer facultyID) throws ServerException, ClientException {
-        if (log.isDebugEnabled()){
-            log.debug("Called removing faculty");
-        }
+    /**
+     * Sends a request for the Removing Faculty
+     *
+     * @param facultyID ID of the Faculty
+     * @throws ClientException
+     */
+    public void removeFaculty( Integer facultyID) throws ClientException {
+        debugLogger("Removing a faculty with ID: " + facultyID);
         createAction("REMOVE_FACULTY");
         appendChildToBody("id", Integer.toString(facultyID));
         sendMessage(nodeToString(messageText));
-        parsingAnswer(reading());
     }
 
-    public List<Student> showStudents( Integer facultyID, Integer groupID, String searchText) throws ServerException, ClientException {
-        if (log.isDebugEnabled()){
-            log.debug("Called adding student");
-        }
+
+    /**
+     * Sends a request for the list of Students
+     *
+     * @param facultyID ID of the Faculty
+     * @param groupID ID of the Group
+     * @param searchText Text for Searching
+     * @throws ClientException
+     */
+    public void showStudents( Integer facultyID, Integer groupID, String searchText) throws ClientException {
         createAction("SEARCH_STUDENTS");
         appendChildToBody("faculty", Integer.toString(facultyID));
         appendChildToBody("group", Integer.toString(groupID));
         appendChildToBody("searchText", searchText);
         sendMessage(nodeToString(messageText));
-        parsingAnswer(reading());
-        return studentsList;
     }
 
-    public void addStudent(Student student) throws ServerException, ClientException {
-        if (log.isDebugEnabled()){
-            log.debug("Called adding student");
-        }
+    /**
+     * Sends a request for the Adding Student
+     *
+     * @param student Student
+     * @throws ClientException
+     */
+    public void addStudent(Student student) throws ClientException {
+        debugLogger("Adding a student: " + student);
         createAction("ADD_STUDENT");
         student.createNode(document, body);
         sendMessage(nodeToString(messageText));
-        parsingAnswer(reading());
     }
 
-    public void changeStudent(Student student) throws ServerException, ClientException {
-        if (log.isDebugEnabled()){
-            log.debug("Called changing student");
-        }
+    /**
+     * Sends a request for the Changing Student
+     *
+     * @param student Student
+     * @throws ClientException
+     */
+    public void changeStudent(Student student) throws ClientException {
+        debugLogger("Changing a student: " + student);
         createAction("CHANGE_STUDENT");
         student.createNodeId(document, body);
         student.createNode(document, body);
         sendMessage(nodeToString(messageText));
-        parsingAnswer(reading());
     }
 
-    public void removeStudent( Integer studentID) throws ServerException, ClientException {
-        if (log.isDebugEnabled()){
-            log.debug("Called removing student");
-        }
+    /**
+     * Sends a request for the Removing Student
+     *
+     * @param studentID ID of the Student
+     * @throws ClientException
+     */
+    public void removeStudent( Integer studentID) throws ClientException {
+        debugLogger("Removing a student with ID: " + studentID);
         createAction("REMOVE_STUDENT");
         appendChildToBody("id", Integer.toString(studentID));
         sendMessage(nodeToString(messageText));
-        parsingAnswer(reading());
     }
 }

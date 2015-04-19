@@ -7,23 +7,28 @@ import java.net.Socket;
 import Exception.*;
 
 public class SocketSingleton {
+
+    /** The Socket */
     private static Socket socket;
 
     private SocketSingleton() {
-
     }
 
     /**
-     * Create socket if it doesnt exist yet and return it
+     * Creates socket? if it doesn't exist yet and return it
+     *
+     * @return socket
+     * @throws ClientException
      */
     public static Socket getSocket() throws ClientException {
         if (socket==null) {
-            try{
+            try {
                 String address = "127.0.0.1";
                 InetAddress ipAddress = InetAddress.getByName(address);
                 int serverPort = 8094;
                 socket = new Socket(ipAddress, serverPort);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 throw new ClientException("Something wrong with socket",e);
             }
         }
