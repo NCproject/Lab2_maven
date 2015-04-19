@@ -100,12 +100,7 @@ public class ThreadController extends Thread {
         if (log.isDebugEnabled())
             log.debug("Method call");
         DataInputStream in = new DataInputStream(socket.getInputStream());
-        try {
-            xmlMessage = in.readUTF();
-        } catch (IOException e) {
-            log.error("Exception", e);
-            throw new IOException(e);
-        }
+        xmlMessage = in.readUTF();
     }
 
     /**

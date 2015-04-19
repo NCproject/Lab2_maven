@@ -37,6 +37,14 @@ public class DB {
      */
     private Connection conn;
 
+    /**
+     * Instantiates a new DB.
+     *
+     * @param host the faculty name
+     * @param dbName the name of DB
+     * @param user the name of DB user
+     * @param password the password for DB user
+     */
     public DB(String host, String dbName, String user, String password) {
         this.host = host;
         this.dbName = dbName;
@@ -54,7 +62,6 @@ public class DB {
             DriverManager.registerDriver(new com.mysql.jdbc.Driver());
             conn = DriverManager.getConnection("jdbc:mysql://" + host + "/" + dbName, user, password);
         } catch (SQLException e) {
-            e.printStackTrace();
             log.error("Exception", e);
             System.exit(0);
         }
@@ -129,48 +136,45 @@ public class DB {
      * @param facultyId id of faculty
      * @param groupId   id of group
      * @param lastName  student`s lastname
-     * @return ArrayList<Student>
+     * @return ArrayList<Student> list of filtered students
      */
     public ArrayList<Student> getStudentsByFilters(int facultyId, int groupId, String lastName) throws SQLException {
         ArrayList<Student> students = new ArrayList<Student>();
         Student student;
-        try {
-            String query = "SELECT * FROM students s JOIN groups g ON s.group_id = g.id "
-                    + "JOIN faculties f ON g.faculty_id = f.id";
-            if (facultyId != 0 || groupId != 0 || !lastName.equals("")) {
-                query += " WHERE ";
-                if (facultyId != 0)
-                    query += "g.faculty_id = ?";
-                if (groupId != 0)
-                    query += (facultyId != 0 ? " AND " : "") + "s.group_id = ?";
-                if (!lastName.equals(""))
-                    query += ((facultyId != 0 || groupId != 0) ? " AND " : "")
-                            + "s.last_name LIKE ?";
-            }
-
-            PreparedStatement st = conn.prepareStatement(query);
-            int i = 1;
+        String query = "SELECT * FROM students s JOIN groups g ON s.group_id = g.id "
+                + "JOIN faculties f ON g.faculty_id = f.id";
+        if (facultyId != 0 || groupId != 0 || !lastName.equals("")) {
+            query += " WHERE ";
             if (facultyId != 0)
-                st.setInt(i++, facultyId);
+                query += "g.faculty_id = ?";
             if (groupId != 0)
-                st.setInt(i++, groupId);
+                query += (facultyId != 0 ? " AND " : "") + "s.group_id = ?";
             if (!lastName.equals(""))
-                st.setString(i, lastName);
-
-            ResultSet rs = st.executeQuery();
-            while (rs.next()) {
-                student = new Student();
-                student.setId(rs.getInt("s.id"));
-                student.setGroupId(rs.getInt("s.group_id"));
-                student.setFacultyId(rs.getInt("g.faculty_id"));
-                student.setFirstName(rs.getString("s.first_name"));
-                student.setLastName(rs.getString("s.last_name"));
-                student.setEnrolled(rs.getString("s.enrolled"));
-                students.add(student);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+                query += ((facultyId != 0 || groupId != 0) ? " AND " : "")
+                        + "s.last_name LIKE ?";
         }
+
+        PreparedStatement st = conn.prepareStatement(query);
+        int i = 1;
+        if (facultyId != 0)
+            st.setInt(i++, facultyId);
+        if (groupId != 0)
+            st.setInt(i++, groupId);
+        if (!lastName.equals(""))
+            st.setString(i, lastName);
+
+        ResultSet rs = st.executeQuery();
+        while (rs.next()) {
+            student = new Student();
+            student.setId(rs.getInt("s.id"));
+            student.setGroupId(rs.getInt("s.group_id"));
+            student.setFacultyId(rs.getInt("g.faculty_id"));
+            student.setFirstName(rs.getString("s.first_name"));
+            student.setLastName(rs.getString("s.last_name"));
+            student.setEnrolled(rs.getString("s.enrolled"));
+            students.add(student);
+        }
+
         return students;
     }
 
@@ -200,7 +204,6 @@ public class DB {
      * Add faculty to DB
      *
      * @param faculty faculty object
-     * @return int faculty`s id
      * @throws SQLException
      */
     public void addFaculty(Faculty faculty) throws SQLException {
@@ -215,7 +218,6 @@ public class DB {
      * Add group to DB
      *
      * @param group group object
-     * @return int group`s id
      * @throws SQLException
      */
     public void addGroup(Group group) throws SQLException {
@@ -231,7 +233,6 @@ public class DB {
      * Add student to DB
      *
      * @param student student object
-     * @return int student`s id
      * @throws SQLException
      */
     public void addStudent(Student student) throws SQLException {

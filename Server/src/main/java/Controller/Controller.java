@@ -133,6 +133,10 @@ public class Controller implements ActionListener {
         }
     }
 
+    /**
+     * Start the server`s socket
+     * @throws ServerException
+     */
     public void starting() throws ServerException {
         if (log.isDebugEnabled())
             log.debug("Method call");
