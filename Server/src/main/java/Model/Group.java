@@ -17,10 +17,20 @@ public class Group {
 
     private ArrayList<Student> students = new ArrayList<Student>();
 
+    /**
+     * Sets the faculty.
+     *
+     * @param fakultyId the faculty
+     */
     public void setFaculty (int fakultyId) {
 		this.fakultyId = fakultyId;
 	}
-    
+
+    /**
+     * Sets the group`s id.
+     *
+     * @param id the id of group
+     */
     public void setId (int id) {
 		this.id = id;
 	}
@@ -39,7 +49,7 @@ public class Group {
     /**
      * Instantiates a new group.
      * 
-     * @param fakulty the faculty
+     * @param fakultyId the faculty
      * @param number the number
      */
     public Group(int fakultyId, String number) {
@@ -50,7 +60,7 @@ public class Group {
     /**
      * Instantiates a new group.
      * 
-     * @param fakulty the faculty
+     * @param id the faculty
      * @param number the number
      */
     public Group(String number, int id) {
@@ -59,7 +69,6 @@ public class Group {
     }
 
     public Group() {
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -96,7 +105,7 @@ public class Group {
     /**
      * Sets the fakulty.
      * 
-     * @param fakulty the new faculty
+     * @param fakultyId the new faculty
      */
     public void setFakulty(int fakultyId) {
         this.fakultyId = fakultyId;
@@ -124,9 +133,8 @@ public class Group {
      * Gets the List of students.
      * 
      * @return the students
-     * @throws ServerException the server exception
      */
-    public List<Student> getStudents() throws ServerException {
+    public List<Student> getStudents() {
         return students;
     }
 
@@ -138,10 +146,20 @@ public class Group {
         return null;
     }
 
+    /**
+     * Sets the List of students.
+     *
+     * @param students the list of students
+     */
     public void setStudents(ArrayList<Student> students) {
         this.students = students;
     }
-    
+
+    /**
+     * Gets the id of group.
+     *
+     * @return the group`s id
+     */
     public int getId() {
 		return this.id;
 	}

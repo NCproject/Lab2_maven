@@ -101,12 +101,7 @@ public class ThreadController extends Thread {
         if (log.isDebugEnabled())
             log.debug("Method call");
         DataInputStream in = new DataInputStream(socket.getInputStream());
-        try {
-            xmlMessage = in.readUTF();
-        } catch (IOException e) {
-            log.error("Exception", e);
-            throw new IOException(e);
-        }
+        xmlMessage = in.readUTF();
     }
 
     /**
@@ -147,7 +142,11 @@ public class ThreadController extends Thread {
             if ("SHOW_FILTERS".equals(action)) {
             	out.writeUTF(showMessage(model.getFilters()));
             }
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> 6f7eec274a7f8968be52a52dab50d4998b667a27
             if ("SEARCH_STUDENTS".equals(action)) {
             	int facultyId = Integer.parseInt(xPath.evaluate("//faculty", xBody));
             	int groupId = Integer.parseInt(xPath.evaluate("//group", xBody));

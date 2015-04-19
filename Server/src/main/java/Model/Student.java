@@ -112,7 +112,7 @@ public class Student implements Cloneable {
     /**
      * Sets the group number.
      * 
-     * @param groupNumber the new group number
+     * @param groupId the new group number
      */
     public void setGroupId(int groupId) {
         this.groupId = groupId;
@@ -131,7 +131,6 @@ public class Student implements Cloneable {
      * Sets the enrolled date.
      * 
      * @param enrolled the new enrolled
-     * @throws ParseException
      */
     public void setEnrolled(String enrolled) {       
         this.enrolled = enrolled;
@@ -187,11 +186,9 @@ public class Student implements Cloneable {
      * @param id the id
      * @param firstName the first name
      * @param lastName the last name
-     * @param groupNumber the group number
      * @param enrolled the enrolled date
-     * @throws ServerException
      */
-    public Student(String firstName, String lastName, String enrolled, int id) throws ServerException {
+    public Student(String firstName, String lastName, String enrolled, int id) {
         setId(id);
         setFirstName(firstName);
         setLastName(lastName);
@@ -201,14 +198,11 @@ public class Student implements Cloneable {
     /**
      * Instantiates a new student.
      * 
-     * @param id the id
      * @param firstName the first name
      * @param lastName the last name
-     * @param groupNumber the group number
      * @param enrolled the enrolled date
-     * @throws ServerException
      */
-    public Student(int groupId, String firstName, String lastName, String enrolled) throws ServerException {        
+    public Student(int groupId, String firstName, String lastName, String enrolled) {
         setFirstName(firstName);
         setLastName(lastName);
         setGroupId(groupId);
@@ -216,7 +210,6 @@ public class Student implements Cloneable {
     }
 
     public Student() {
-        // TODO Auto-generated constructor stub
     }
     
     /**
